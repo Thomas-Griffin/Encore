@@ -1,4 +1,7 @@
+using Encore.Model.Stats;
+using Encore.Systems;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Tests.EditMode
 {
@@ -9,8 +12,8 @@ namespace Tests.EditMode
         [OneTimeSetUp]
         public void Setup()
         {
-            _statManager = new StatManager();
-            _statManager.InitialiseStats(DifficultyLevel.Easy);
+            GameObject gameObject = new GameObject("StatManagerTestObject");
+            _statManager = gameObject.AddComponent<StatManager>();
         }
 
         [Test]
