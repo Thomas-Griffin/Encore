@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Encore.Model.Stats;
 using Encore.Systems;
 using UnityEngine;
@@ -21,15 +22,14 @@ namespace Encore.UI
 
         private void InitializeDisplayedValues()
         {
-            var stats = _statManager?.GetStats();
+            GameStat[] stats = _statManager?.GetStats();
             if (stats == null) return;
 
-            foreach (var s in stats)
+            foreach (GameStat gameStat in stats)
             {
-                if (s == null) continue; // defensive: skip null entries
+                if (gameStat == null) continue; // defensive: skip null entries
 
-                // Stat is expected to be non-null/enum; use ToString() for the key
-                _displayedValues[s.Stat.ToString()] = s.CurrentValue;
+                _displayedValues[gameStat.Stat.ToString()] = gameStat.CurrentValue;
             }
         }
 
@@ -38,17 +38,17 @@ namespace Encore.UI
             if (!_statManager) return;
 
             // cache stats and guard against null returns
-            var stats = _statManager?.GetStats();
+            GameStat[] stats = _statManager?.GetStats();
             if (stats != null)
             {
-                foreach (var stat in stats)
+                foreach (GameStat gameStat in stats)
                 {
-                    if (stat == null) continue; // defensive
+                    if (gameStat == null) continue; // defensive
 
-                    string key = stat.Stat.ToString();
-                    float target = stat.CurrentValue;
+                    string key = gameStat.Stat.ToString();
+                    float target = gameStat.CurrentValue;
 
-                    if (!_displayedValues.TryGetValue(key, out var displayed))
+                    if (!_displayedValues.TryGetValue(key, out float displayed))
                     {
                         _displayedValues[key] = target;
                         continue;
@@ -61,30 +61,26 @@ namespace Encore.UI
             }
 
             // cleanup removed stats
-            var existingKeys = new HashSet<string>();
-            var existingStats = _statManager?.GetStats();
+            HashSet<string> existingKeys = new();
+            GameStat[] existingStats = _statManager?.GetStats();
             if (existingStats != null)
             {
-                foreach (var s in existingStats)
+                foreach (GameStat gameStat in existingStats)
                 {
-                    if (s == null) continue;
-                    existingKeys.Add(s.Stat.ToString());
+                    if (gameStat == null) continue;
+                    existingKeys.Add(gameStat.Stat.ToString());
                 }
             }
 
-            var toRemove = new List<string>();
-            foreach (var k in _displayedValues.Keys)
-            {
-                if (!existingKeys.Contains(k)) toRemove.Add(k);
-            }
+            List<string> toRemove = _displayedValues.Keys.Where(key => !existingKeys.Contains(key)).ToList();
 
-            foreach (var k in toRemove) _displayedValues.Remove(k);
+            foreach (string key in toRemove) _displayedValues.Remove(key);
         }
 
         public float GetDisplayedValue(GameStat stat)
         {
             if (stat == null) return 0f;
-            if (_displayedValues.TryGetValue(stat.Stat.ToString(), out var v)) return v;
+            if (_displayedValues.TryGetValue(stat.Stat.ToString(), out float v)) return v;
             return stat.CurrentValue;
         }
     }
