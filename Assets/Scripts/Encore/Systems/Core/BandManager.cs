@@ -23,7 +23,7 @@ namespace Encore.Systems.Core
                 name: name,
                 members: new List<BandMember>(),
                 genre: BandGenre.Rock,
-                popularityLevel: BandPopularityLevels.Unknown,
+                fameLevel: BandFameLevels.Unknown,
                 status: BandStatus.Inactive,
                 rivals: new List<Band>(),
                 influences: new List<Band>(),

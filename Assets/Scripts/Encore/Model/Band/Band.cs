@@ -7,7 +7,7 @@ namespace Encore.Model.Band
         public string Name { get; set; }
         public List<BandMember.BandMember> Members { get; set; }
         public BandGenre Genre { get; set; }
-        public BandPopularityLevels PopularityLevel { get; set; }
+        public BandFameLevels FameLevel { get; set; }
         public BandStatus Status { get; set; }
         public List<Band> Rivals { get; set; }
         public List<Band> Influences { get; set; }
@@ -17,7 +17,7 @@ namespace Encore.Model.Band
         public Band(string name,
             List<BandMember.BandMember> members,
             BandGenre genre,
-            BandPopularityLevels popularityLevel,
+            BandFameLevels fameLevel,
             BandStatus status,
             List<Band> rivals,
             List<Band> influences,
@@ -27,7 +27,7 @@ namespace Encore.Model.Band
             Name = name;
             Members = members ?? new List<BandMember.BandMember>();
             Genre = genre;
-            PopularityLevel = popularityLevel;
+            FameLevel = fameLevel;
             Status = status;
             Rivals = rivals ?? new List<Band>();
             Influences = influences ?? new List<Band>();

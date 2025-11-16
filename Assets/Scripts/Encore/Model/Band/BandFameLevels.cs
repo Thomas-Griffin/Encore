@@ -1,6 +1,6 @@
 namespace Encore.Model.Band
 {
-    public enum BandPopularityLevels
+    public enum BandFameLevels
     {
         Unknown,
         Local,
