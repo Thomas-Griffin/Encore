@@ -15,7 +15,7 @@ namespace Encore.Systems.GameEvent.Events
         {
             Requirements = new StatRequirements
             {
-                MinEnergy = 1 + Math.Abs(CalculateEnergyDelta()),
+                MinEnergy = 0,
                 MinSkill = 0,
                 MinPopularity = 0,
                 MinFame = 0
