@@ -147,8 +147,8 @@ namespace Encore.Systems.Core
                 initialValue: 0,
                 minValue: 0,
                 maxValue: FameTarget,
-                maximumIncrease: 20,
-                maximumDecrease: 20,
+                maximumIncrease: 40,
+                maximumDecrease: 40,
                 minimumIncrease: 1,
                 minimumDecrease: 1
             );

@@ -79,9 +79,8 @@ namespace Encore.Systems.Save
                 {
                     if (gameStat == null) continue;
                     if (gameStat.Stat != statEnum) continue;
-                    gameStat.InitialValue = statSnapshot.initialValue;
-                    gameStat.CurrentValue = statSnapshot.currentValue;
-                    gameStat.ClampValue();
+                    gameStat.InitialValue = gameStat.ClampedValue(statSnapshot.initialValue);
+                    gameStat.CurrentValue = gameStat.ClampedValue(statSnapshot.currentValue);
                     break;
                 }
             }

@@ -42,12 +42,12 @@ namespace Encore.Systems.GameEvent.Events
 
         private int CalculateEnergyDelta()
         {
-            return -10 * ConsecutiveEventRepetitions;
+            return Math.Clamp(-10 - (ConsecutiveEventRepetitions - 1), -30, -5);
         }
 
         private int CalculatePopularityDelta()
         {
-            return 10 * ConsecutiveEventRepetitions;
+            return Math.Clamp(5 * ConsecutiveEventRepetitions, 5, 30);
         }
     }
 }

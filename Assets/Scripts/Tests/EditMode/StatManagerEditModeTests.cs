@@ -18,16 +18,18 @@ namespace Tests.EditMode
         [OneTimeSetUp]
         public void Setup()
         {
-            _statManager = ScriptableObject.CreateInstance<StatManager>();
+            _statManager ??= ScriptableObject.CreateInstance<StatManager>();
             _statManager.InitialiseStats(DifficultyLevel.Easy);
         }
-        
+
+        [SetUp]
         public void BeforeEach()
         {
+            _saveManager ??= new SaveManager();
             _statManager.ResetStats();
             _saveManager.DeleteAllSaves();
         }
-        
+
         [OneTimeTearDown]
         public void TearDown()
         {
@@ -232,6 +234,5 @@ namespace Tests.EditMode
                 }
             }
         }
-
     }
 }

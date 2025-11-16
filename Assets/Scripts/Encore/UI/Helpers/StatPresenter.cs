@@ -8,9 +8,11 @@ namespace Encore.UI.Helpers
     {
         private readonly StatManager _statManager;
 
-        private const float AnimationDurationSeconds = 0.01f;
+        // Longer duration gives smoother visible animations
+        private const float AnimationDurationSeconds = 2f;
 
-        private const float FinishEpsilonPercent = 0.001f;
+        // Epsilon percent to consider animation finished
+        private const float FinishEpsilonPercent = 0.01f;
 
         public StatPresenter(StatManager statManager)
         {

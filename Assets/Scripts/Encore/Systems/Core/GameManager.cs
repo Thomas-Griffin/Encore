@@ -12,7 +12,21 @@ namespace Encore.Systems.Core
     {
         public SaveManager SaveManager { get; private set; }
 
-        public GameInstance Instance { get; private set; }
+        private GameInstance _instance;
+
+        public GameInstance Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    EnsureInitialised();
+                }
+
+                return _instance;
+            }
+            private set => _instance = value;
+        }
 
         private bool _initialised;
 
@@ -22,7 +36,7 @@ namespace Encore.Systems.Core
 
         public GameManager(GameInstance instance)
         {
-            Instance = instance;
+            _instance = instance;
         }
 
         private void Awake()
@@ -37,14 +51,14 @@ namespace Encore.Systems.Core
             SaveManager ??= new SaveManager();
             SaveManager.EnsureSaveDirectoryExists();
 
-            Instance ??= new GameInstance();
+            _instance ??= new GameInstance();
 
-            if (!Instance.Stats)
+            if (_instance?.Stats is null)
             {
-                Instance.Stats = ScriptableObject.CreateInstance<StatManager>();
+                _instance!.Stats = ScriptableObject.CreateInstance<StatManager>();
             }
 
-            Instance.Days ??= new DayManager(Instance.Difficulty);
+            _instance.Days ??= new DayManager(_instance.Difficulty);
 
             _initialised = true;
         }
@@ -53,17 +67,19 @@ namespace Encore.Systems.Core
         {
             EnsureInitialised();
 
-            if (SaveManager.SaveFileExists(Instance?.SaveFileName))
+            if (SaveManager.SaveFileExists(_instance?.SaveFileName))
             {
-                Instance = SaveManager.LoadFromFile(Instance?.SaveFileName).ToGameInstance();
+                _instance = SaveManager.LoadFromFile(_instance?.SaveFileName).ToGameInstance();
                 return;
             }
 
-            Instance ??= new GameInstance(DateTime.UtcNow.ToString("F"), difficulty);
+            _instance ??= new GameInstance(DateTime.UtcNow.ToString("F"), difficulty);
 
-            Instance.Difficulty = difficulty;
-            Instance.Stats.InitialiseStats(difficulty);
-            Instance.State = GameState.Playing;
+            _instance.Difficulty = difficulty;
+            _instance.Stats.InitialiseStats(difficulty);
+            _instance.State = GameState.Playing;
+
+            _instance.Events.Append(new StartGameEvent());
         }
 
         public void DoAction(GameAction action)
@@ -86,7 +102,7 @@ namespace Encore.Systems.Core
             {
                 EnsureInitialised();
 
-                Instance.Events.Append(Instance.ApplyEvent(gameEvent));
+                _instance.Events.Append(_instance.ApplyEvent(gameEvent));
                 if (gameEvent.DelegateEvent != null)
                 {
                     gameEvent = gameEvent.DelegateEvent;
@@ -101,13 +117,13 @@ namespace Encore.Systems.Core
         {
             EnsureInitialised();
 
-            string saveName = Instance.SaveFileName;
+            string saveName = _instance.SaveFileName;
             if (string.IsNullOrWhiteSpace(saveName))
             {
                 saveName = "autosave";
             }
 
-            SaveManager.SaveToFile(new SaveData(saveName, 0, Instance, DateTime.UtcNow));
+            SaveManager.SaveToFile(new SaveData(saveName, 0, _instance, DateTime.UtcNow));
         }
 
         public void CheckForEndGameConditions()
@@ -115,13 +131,16 @@ namespace Encore.Systems.Core
             EnsureInitialised();
             CheckForWinCondition();
             CheckForLoseCondition();
+
+            // Show UI screens only if the UI manager exists (edit-mode tests may not create UI)
+            UIScreenManager ui = UIScreenManager.Instance;
             switch (Instance?.State)
             {
                 case GameState.Win:
-                    UIScreenManager.Instance.ShowScreen(UIScreenNames.WinScreen);
+                    ui?.ShowScreen(UIScreenNames.WinScreen);
                     break;
                 case GameState.Lose:
-                    UIScreenManager.Instance.ShowScreen(UIScreenNames.LoseScreen);
+                    ui?.ShowScreen(UIScreenNames.LoseScreen);
                     break;
                 case GameState.Playing:
                     break;
@@ -134,17 +153,17 @@ namespace Encore.Systems.Core
         private void CheckForLoseCondition()
         {
             EnsureInitialised();
-            Instance.LoseReasons = new List<LoseReasons>();
-            if (Instance.Stats.LoseConditionMet())
+            _instance.LoseReasons = new List<LoseReasons>();
+            if (_instance.Stats.LoseConditionMet())
             {
-                Instance.LoseReasons.Add(LoseReasons.EnergyDepleted);
-                Instance.State = GameState.Lose;
+                _instance.LoseReasons.Add(LoseReasons.EnergyDepleted);
+                _instance.State = GameState.Lose;
             }
-            else if (Instance.Days.CurrentDay == Instance.Days.TotalDays)
+            else if (_instance.Days.CurrentDay == _instance.Days.TotalDays)
             {
-                if (Instance.Stats.WinConditionMet()) return;
-                Instance.LoseReasons.Add(LoseReasons.RanOutOfTime);
-                Instance.State = GameState.Lose;
+                if (_instance.Stats.WinConditionMet()) return;
+                _instance.LoseReasons.Add(LoseReasons.RanOutOfTime);
+                _instance.State = GameState.Lose;
             }
         }
 
@@ -152,10 +171,10 @@ namespace Encore.Systems.Core
         {
             EnsureInitialised();
 
-            Instance.WinReasons = new List<WinReasons>();
-            if (!Instance.Stats.WinConditionMet()) return;
-            Instance.WinReasons.Add(WinReasons.AchievedFameTarget);
-            Instance.State = GameState.Win;
+            _instance.WinReasons = new List<WinReasons>();
+            if (!_instance.Stats.WinConditionMet()) return;
+            _instance.WinReasons.Add(WinReasons.AchievedFameTarget);
+            _instance.State = GameState.Win;
         }
     }
 }

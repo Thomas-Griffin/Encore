@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Encore.Model.BandMember;
-using UnityEngine;
 
 namespace Encore.Systems.Personality
 {

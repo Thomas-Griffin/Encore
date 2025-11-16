@@ -34,14 +34,15 @@ namespace Encore.UI.Screens
                 {
                     alignment = TextAnchor.MiddleCenter,
                     fontSize = 32,
-                    fontStyle = FontStyle.Normal
+                    fontStyle = FontStyle.Bold
                 };
 
                 _buttonStyle = new GUIStyle(GUI.skin.button)
                 {
                     fontSize = 24,
                     fixedHeight = 48,
-                    alignment = TextAnchor.MiddleCenter
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold
                 };
             }
 

@@ -10,7 +10,7 @@ namespace Encore.Abstractions.Interfaces
         int MaxValue { get; }
         void Increase();
         void Decrease();
-        void ClampValue();
+        int ClampedValue(int value);
         void Reset();
         bool IsAtMaximum();
         bool IsAtMinimum();

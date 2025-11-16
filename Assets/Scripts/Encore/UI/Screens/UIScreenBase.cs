@@ -10,7 +10,7 @@ namespace Encore.UI.Screens
 
         protected GameManager gameManager;
 
-        protected Color BackgroundColor = new(0f, 0f, 0f, 0.5f);
+        protected Color BackgroundColor = new(0f, 0f, 0f, 1f);
         protected Texture2D BackgroundTexture;
 
         private bool _visible;
@@ -63,6 +63,7 @@ namespace Encore.UI.Screens
             {
                 BackgroundTexture = CreateTexture(BackgroundColor);
             }
+
 
             Initialise(game);
         }

@@ -62,8 +62,11 @@ namespace Encore.Model.Stats
         {
             LastValue = CurrentValue;
             DisplayValue = CurrentValue;
-            CurrentValue += amount;
-            ClampValue();
+            if (CurrentValue + amount > MaxValue)
+            {
+                CurrentValue = MaxValue;
+            }
+            CurrentValue = ClampedValue(CurrentValue + amount);
         }
 
         private int CalculateIncreaseAmount()
@@ -82,32 +85,19 @@ namespace Encore.Model.Stats
         {
             LastValue = CurrentValue;
             DisplayValue = CurrentValue;
-            CurrentValue -= CalculateDecreaseAmount();
-            ClampValue();
+            CurrentValue = ClampedValue(CurrentValue - CalculateDecreaseAmount());
         }
 
         public void DecreaseBy(int amount)
         {
             LastValue = CurrentValue;
             DisplayValue = CurrentValue;
-            CurrentValue -= amount;
-            ClampValue();
+            CurrentValue = ClampedValue(CurrentValue - amount);
         }
 
-        public void ClampValue()
+        public int ClampedValue(int value)
         {
-            if (CurrentValue > MaxValue)
-            {
-                LastValue = CurrentValue;
-                DisplayValue = CurrentValue;
-                CurrentValue = MaxValue;
-            }
-            else if (CurrentValue < MinValue)
-            {
-                LastValue = CurrentValue;
-                DisplayValue = CurrentValue;
-                CurrentValue = MinValue;
-            }
+            return value > MaxValue ? MaxValue : value < MinValue ? MinValue : value;
         }
 
         public void Reset()
@@ -131,12 +121,12 @@ namespace Encore.Model.Stats
 
         public bool IsAtMaximum()
         {
-            return CurrentValue == MaxValue;
+            return Mathf.Approximately(DisplayValue, MaxValue);
         }
 
         public bool IsAtMinimum()
         {
-            return CurrentValue == MinValue;
+            return Mathf.Approximately(DisplayValue, MinValue);
         }
 
         public bool HasExceededMaximum()

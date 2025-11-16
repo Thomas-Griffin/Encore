@@ -1,4 +1,5 @@
 using Encore.Model.Game;
+using UnityEngine;
 
 namespace Encore.Systems.GameEvent.Events
 {
@@ -32,19 +33,30 @@ namespace Encore.Systems.GameEvent.Events
             return this;
         }
 
+        // Bell-curve skill gain: slow at first, peak around middle, then decline at high repetitions.
         private int CalculateSkillDelta()
         {
-            return 1 * ConsecutiveEventRepetitions;
+            const float maximumGainAtBellCurvePeak = 3f;
+            const float repetitionCountWherePracticeMostEffective = 3f;
+            const float bellCurveWidth = 1.2f;
+
+            float repetitions = Mathf.Max(1f, ConsecutiveEventRepetitions);
+
+            float exponent = -((repetitions - repetitionCountWherePracticeMostEffective) * (repetitions - repetitionCountWherePracticeMostEffective)) / (2f * bellCurveWidth * bellCurveWidth);
+            float rawGain = maximumGainAtBellCurvePeak * Mathf.Exp(exponent);
+            
+            int gain = Mathf.Clamp(Mathf.RoundToInt(rawGain), 1, Mathf.RoundToInt(maximumGainAtBellCurvePeak));
+            return gain;
         }
 
+        // Energy cost grows with repetitions (non-linear) so prolonged practice gets harder to maintain.
         private int CalculateEnergyDelta()
         {
-            if (ConsecutiveEventRepetitions <= 5)
-            {
-                return -5 + (ConsecutiveEventRepetitions - 1) * 2;
-            }
-
-            return -5;
+            float reps = Mathf.Max(1f, ConsecutiveEventRepetitions);
+            const int baseCost = 5;
+            // extra cost scales like (reps-1)^1.5 times a factor
+            int extra = Mathf.RoundToInt(Mathf.Pow(reps - 1f, 1.5f) * 2f);
+            return -(baseCost + extra);
         }
     }
 }

@@ -48,11 +48,19 @@ namespace Encore.Model.Game
 
         private GameEventBase CalculateEventRepetitions(GameEventBase gameEvent)
         {
-            GameEventBase lastEvent = Events.GetLastEvent();
-            if (lastEvent is { Action: not null } && gameEvent.Action != null &&
-                lastEvent.Action.Type == gameEvent.Action.Type)
+            GameEventBase lastActionEvent = null;
+            List<GameEventBase> all = Events.GetAllEvents();
+            for (int i = all.Count - 1; i >= 0; i--)
             {
-                gameEvent.ConsecutiveEventRepetitions = lastEvent.ConsecutiveEventRepetitions + 1;
+                if (all[i] == null || all[i].Action == null) continue;
+                lastActionEvent = all[i];
+                break;
+            }
+
+            if (lastActionEvent != null && gameEvent.Action != null &&
+                lastActionEvent.Action!.Type == gameEvent.Action.Type)
+            {
+                gameEvent.ConsecutiveEventRepetitions = lastActionEvent.ConsecutiveEventRepetitions + 1;
             }
             else
             {

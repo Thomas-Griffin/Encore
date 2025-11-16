@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Encore.Model.Band;
 using Encore.Model.BandMember;
 using Encore.Systems.Personality;
-using UnityEngine;
 
 namespace Encore.Systems.Core
 {

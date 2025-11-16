@@ -33,7 +33,8 @@ namespace Encore.UI.Screens
             {
                 fontSize = 24,
                 fixedHeight = 48,
-                alignment = TextAnchor.MiddleCenter
+                alignment = TextAnchor.MiddleCenter,
+                fontStyle = FontStyle.Bold
             };
 
             _labelStyle ??= new GUIStyle(GUI.skin.label)

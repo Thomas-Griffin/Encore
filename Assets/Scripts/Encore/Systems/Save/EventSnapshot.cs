@@ -15,6 +15,7 @@ namespace Encore.Systems.Save
         public string timestamp;
         public StatDeltas deltas;
         public GameActionSnapshot action;
+        public int consecutiveRepetitions;
 
         public static GameEventBase ToGameEvent(EventSnapshot snapshot)
         {
@@ -26,6 +27,7 @@ namespace Encore.Systems.Save
                 "GigEvent" => new GigEvent(),
                 "FameBonusEvent" => new FameBonusEvent(),
                 "NextDayEvent" => new NextDayEvent(),
+                "StartGameEvent" => new StartGameEvent(),
                 _ => null
             };
 
@@ -48,6 +50,10 @@ namespace Encore.Systems.Save
                 gameEvent.Action = new SimpleGameAction(actionEnum);
             }
 
+            gameEvent.ConsecutiveEventRepetitions = snapshot.consecutiveRepetitions > 0
+                ? snapshot.consecutiveRepetitions
+                : 1;
+
             return gameEvent;
         }
 
@@ -63,7 +69,8 @@ namespace Encore.Systems.Save
                 deltas = gameEvent.Deltas ?? new StatDeltas(),
                 action = gameEvent.Action == null
                     ? null
-                    : new GameActionSnapshot { actionType = gameEvent.Action.Type.ToString() }
+                    : new GameActionSnapshot { actionType = gameEvent.Action.Type.ToString() },
+                consecutiveRepetitions = gameEvent.ConsecutiveEventRepetitions
             };
         }
     }
