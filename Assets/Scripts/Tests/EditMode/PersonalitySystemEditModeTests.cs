@@ -205,20 +205,6 @@ namespace Tests.EditMode
             string afterMoraleStr = band.Members[0].Morale.ToString();
             TestContext.WriteLine($"morale after apply = {afterMoraleStr}");
 
-            // Map actual assigned morale back to normalized value for diagnostics
-            float ActualMoraleToFloat(BandMemberMoraleLevels morale)
-            {
-                return morale switch
-                {
-                    BandMemberMoraleLevels.VeryLow => 0.0f,
-                    BandMemberMoraleLevels.Low => 0.25f,
-                    BandMemberMoraleLevels.Medium => 0.5f,
-                    BandMemberMoraleLevels.High => 0.75f,
-                    BandMemberMoraleLevels.VeryHigh => 1.0f,
-                    _ => 0.5f
-                };
-            }
-
             float actualNormalized = ActualMoraleToFloat(band.Members[0].Morale);
             TestContext.WriteLine($"expectedNormalized={updatedNormalized} actualNormalized(from assigned tier)={actualNormalized}");
 
@@ -231,6 +217,20 @@ namespace Tests.EditMode
 
             Assert.AreEqual(expectedMorale, band.Members[0].Morale,
                 $"Expected band.Members[0].Morale == {expectedMorale} based on updatedNormalized={updatedNormalized} but was {band.Members[0].Morale} (actualNormalized={actualNormalized})");
+            return;
+
+            float ActualMoraleToFloat(BandMemberMoraleLevels morale)
+            {
+                return morale switch
+                {
+                    BandMemberMoraleLevels.VeryLow => 0.0f,
+                    BandMemberMoraleLevels.Low => 0.25f,
+                    BandMemberMoraleLevels.Medium => 0.5f,
+                    BandMemberMoraleLevels.High => 0.75f,
+                    BandMemberMoraleLevels.VeryHigh => 1.0f,
+                    _ => 0.5f
+                };
+            }
         }
     }
 }
