@@ -41,7 +41,7 @@ namespace Encore.Systems.GameEvent.Events
         {
             if (ConsecutiveEventRepetitions <= 5)
             {
-                return -10 + (ConsecutiveEventRepetitions - 1) * 2;
+                return -5 + (ConsecutiveEventRepetitions - 1) * 2;
             }
 
             return -5;

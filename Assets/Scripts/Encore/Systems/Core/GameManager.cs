@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Encore.Model.Game;
 using Encore.Systems.GameEvent.Events;
 using Encore.Systems.Save;
@@ -51,7 +52,7 @@ namespace Encore.Systems.Core
         public void StartGame(DifficultyLevel difficulty)
         {
             EnsureInitialised();
-            
+
             if (SaveManager.SaveFileExists(Instance?.SaveFileName))
             {
                 Instance = SaveManager.LoadFromFile(Instance?.SaveFileName).ToGameInstance();
@@ -133,10 +134,16 @@ namespace Encore.Systems.Core
         private void CheckForLoseCondition()
         {
             EnsureInitialised();
-
-            if (Instance.Stats.LoseConditionMet() || (Instance.Days.CurrentDay == Instance.Days.TotalDays &&
-                                                      !Instance.Stats.WinConditionMet()))
+            Instance.LoseReasons = new List<LoseReasons>();
+            if (Instance.Stats.LoseConditionMet())
             {
+                Instance.LoseReasons.Add(LoseReasons.EnergyDepleted);
+                Instance.State = GameState.Lose;
+            }
+            else if (Instance.Days.CurrentDay == Instance.Days.TotalDays)
+            {
+                if (Instance.Stats.WinConditionMet()) return;
+                Instance.LoseReasons.Add(LoseReasons.RanOutOfTime);
                 Instance.State = GameState.Lose;
             }
         }
@@ -145,10 +152,10 @@ namespace Encore.Systems.Core
         {
             EnsureInitialised();
 
-            if (Instance.Stats.WinConditionMet())
-            {
-                Instance.State = GameState.Win;
-            }
+            Instance.WinReasons = new List<WinReasons>();
+            if (!Instance.Stats.WinConditionMet()) return;
+            Instance.WinReasons.Add(WinReasons.AchievedFameTarget);
+            Instance.State = GameState.Win;
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Encore.Systems.Core;
 using Encore.Systems.GameEvent;
 using Encore.Systems.GameEvent.Events;
@@ -16,6 +17,9 @@ namespace Encore.Model.Game
         public DayManager Days { get; set; }
 
         public string SaveFileName { get; set; }
+
+        public List<LoseReasons> LoseReasons { get; set; } = new();
+        public List<WinReasons> WinReasons { get; set; } = new();
 
         public GameInstance()
         {

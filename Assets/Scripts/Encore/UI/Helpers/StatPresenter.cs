@@ -8,7 +8,7 @@ namespace Encore.UI.Helpers
     {
         private readonly StatManager _statManager;
 
-        private const float AnimationDurationSeconds = 1f;
+        private const float AnimationDurationSeconds = 0.01f;
 
         private const float FinishEpsilonPercent = 0.001f;
 

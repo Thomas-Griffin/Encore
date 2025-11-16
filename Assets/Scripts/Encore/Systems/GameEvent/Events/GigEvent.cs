@@ -17,7 +17,13 @@ namespace Encore.Systems.GameEvent.Events
         {
             Requirements = new StatRequirements
             {
-                MinEnergy = Math.Abs(CalculateEnergyDelta())
+                MinSkill = difficulty switch
+                {
+                    DifficultyLevel.Easy => 3,
+                    DifficultyLevel.Medium => 4,
+                    DifficultyLevel.Hard => 5,
+                    _ => 3
+                },
             };
             DelegateEvent = new FameBonusEvent(difficulty);
         }

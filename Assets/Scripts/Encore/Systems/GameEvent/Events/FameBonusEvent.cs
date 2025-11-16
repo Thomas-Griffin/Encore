@@ -40,7 +40,7 @@ namespace Encore.Systems.GameEvent.Events
 
         private int CalculateFameDelta(GameInstance state)
         {
-            return state.Stats.Skill.CurrentValue * state.Stats.Popularity.CurrentValue * ConsecutiveEventRepetitions / 100;
+            return state.Stats.Skill.CurrentValue * state.Stats.Popularity.CurrentValue * ConsecutiveEventRepetitions / state.Stats.Fame.MaxValue;
         }
     }
 }

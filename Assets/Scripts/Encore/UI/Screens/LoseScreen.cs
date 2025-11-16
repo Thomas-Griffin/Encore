@@ -8,6 +8,7 @@ namespace Encore.UI.Screens
     {
         private GUIStyle _titleStyle;
         private GUIStyle _buttonStyle;
+        private GUIStyle _labelStyle;
 
         public override void OnInitialise(GameManager game)
         {
@@ -21,29 +22,33 @@ namespace Encore.UI.Screens
             if (!gameManager) return;
             if (!IsVisible()) return;
 
-            if (_titleStyle == null || _buttonStyle == null)
+            _titleStyle ??= new GUIStyle(GUI.skin.label)
             {
-                _titleStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = 56,
-                    fontStyle = FontStyle.Bold
-                };
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 56,
+                fontStyle = FontStyle.Bold
+            };
 
-                _buttonStyle = new GUIStyle(GUI.skin.button)
-                {
-                    fontSize = 24,
-                    fixedHeight = 48,
-                    alignment = TextAnchor.MiddleCenter
-                };
-            }
+            _buttonStyle ??= new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 24,
+                fixedHeight = 48,
+                alignment = TextAnchor.MiddleCenter
+            };
 
-            Rect full = new Rect(0, 0, Screen.width, Screen.height);
+            _labelStyle ??= new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 42,
+                fontStyle = FontStyle.Bold
+            };
+
+            Rect full = new(0, 0, Screen.width, Screen.height);
             GUI.DrawTexture(full, BackgroundTexture);
 
             float panelWidth = Mathf.Min(600, Screen.width * 0.7f);
             float panelHeight = 240f;
-            Rect panel = new Rect((Screen.width - panelWidth) * 0.5f, (Screen.height - panelHeight) * 0.4f, panelWidth,
+            Rect panel = new((Screen.width - panelWidth) * 0.5f, (Screen.height - panelHeight) * 0.4f, panelWidth,
                 panelHeight);
 
             GUILayout.BeginArea(panel);
@@ -51,6 +56,8 @@ namespace Encore.UI.Screens
 
             GUILayout.Label("You Lose", _titleStyle, GUILayout.Height(72));
             GUILayout.Space(20);
+
+            DisplayLoseReasons();
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -80,6 +87,16 @@ namespace Encore.UI.Screens
 
             GUILayout.FlexibleSpace();
             GUILayout.EndArea();
+        }
+
+        private void DisplayLoseReasons()
+        {
+            foreach (LoseReasons loseReason in gameManager.Instance.LoseReasons)
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label($"{LoseReasonExtensions.ToDescription(loseReason)}", _labelStyle);
+                GUILayout.EndHorizontal();
+            }
         }
 
         protected override void OnDestroy()
