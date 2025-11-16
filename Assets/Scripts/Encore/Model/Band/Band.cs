@@ -2,17 +2,7 @@ using System.Collections.Generic;
 
 namespace Encore.Model.Band
 {
-    public record Band(
-        string Name,
-        List<BandMember.BandMember> Members,
-        BandGenre Genre,
-        BandPopularityLevels PopularityLevel,
-        BandStatus Status,
-        List<Band> Rivals,
-        List<Band> Influences,
-        List<Band> Supporting,
-        List<Band> SupportedBy
-    )
+    public class Band
     {
         public string Name { get; set; }
         public List<BandMember.BandMember> Members { get; set; }
@@ -23,5 +13,26 @@ namespace Encore.Model.Band
         public List<Band> Influences { get; set; }
         public List<Band> Supporting { get; set; }
         public List<Band> SupportedBy { get; set; }
+
+        public Band(string name,
+            List<BandMember.BandMember> members,
+            BandGenre genre,
+            BandPopularityLevels popularityLevel,
+            BandStatus status,
+            List<Band> rivals,
+            List<Band> influences,
+            List<Band> supporting,
+            List<Band> supportedBy)
+        {
+            Name = name;
+            Members = members ?? new List<BandMember.BandMember>();
+            Genre = genre;
+            PopularityLevel = popularityLevel;
+            Status = status;
+            Rivals = rivals ?? new List<Band>();
+            Influences = influences ?? new List<Band>();
+            Supporting = supporting ?? new List<Band>();
+            SupportedBy = supportedBy ?? new List<Band>();
+        }
     }
 }

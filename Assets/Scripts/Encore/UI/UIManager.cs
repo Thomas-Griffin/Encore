@@ -1,4 +1,4 @@
-using Encore.Systems;
+using Encore.Systems.Core;
 using UnityEngine;
 
 namespace Encore.UI
@@ -11,8 +11,9 @@ namespace Encore.UI
             if (Object.FindFirstObjectByType<MainUI>()) return;
 
             GameObject gameObject = new("MainUI");
-            gameObject.AddComponent<GameManager>();
-            gameObject.AddComponent<MainUI>();
+            GameManager gameManager = gameObject.AddComponent<GameManager>();
+            MainUI mainUI = gameObject.AddComponent<MainUI>();
+            mainUI.Initialise(gameManager);
             Object.DontDestroyOnLoad(gameObject);
         }
     }

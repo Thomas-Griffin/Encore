@@ -1,12 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Encore.UI
 {
-    // Simple Texture2D cache keyed by Color
     public class TextureCache
     {
-        private readonly Dictionary<Color, Texture2D> _cache = new Dictionary<Color, Texture2D>();
+        private readonly Dictionary<Color, Texture2D> _cache = new();
 
         public Texture2D Get(Color color)
         {
@@ -21,10 +21,11 @@ namespace Encore.UI
 
         public void Clear()
         {
-            foreach (KeyValuePair<Color, Texture2D> keyValuePair in _cache)
+            foreach (KeyValuePair<Color, Texture2D> keyValuePair in _cache.Where(keyValuePair => keyValuePair.Value))
             {
-                if (keyValuePair.Value) Object.DestroyImmediate(keyValuePair.Value);
+                Object.DestroyImmediate(keyValuePair.Value);
             }
+
             _cache.Clear();
         }
     }

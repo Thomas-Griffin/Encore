@@ -1,7 +1,8 @@
 using Encore.Model.Game;
 using Encore.Model.Stats;
-using Encore.Systems;
+using Encore.Systems.Core;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Encore.UI
 {
@@ -16,6 +17,9 @@ namespace Encore.UI
         private TextureCache _textureCache;
         private StatPresenter _presenter;
 
+        private readonly Dictionary<GameStats, GUIContent> _statNameContent = new();
+        private readonly Dictionary<GameStats, GUIContent> _statValueContent = new();
+
         private GUIStyle _labelStyle;
         private GUIStyle _valueStyle;
 
@@ -26,12 +30,11 @@ namespace Encore.UI
         private const int FontSize = 30;
 
 
-        void Awake()
+        private void Awake()
         {
             if (!gameManager)
             {
-                // try to find an existing GameManager in the scene as a fallback
-                gameManager = UnityEngine.Object.FindAnyObjectByType<GameManager>();
+                gameManager = FindAnyObjectByType<GameManager>();
                 if (!gameManager)
                 {
                     Debug.LogError(
@@ -39,24 +42,44 @@ namespace Encore.UI
                 }
             }
 
-            _backgroundTexture = CreateTexture(backgroundColor);
-
-            if (gameManager && gameManager.statManager)
-            {
-                _presenter = new StatPresenter(gameManager.statManager);
-            }
-
-            _textureCache = new TextureCache();
+            Initialise(gameManager);
         }
 
-        void Update()
+        public void Initialise(GameManager game)
+        {
+            gameManager = game ?? gameManager;
+
+            if (_backgroundTexture == null)
+            {
+                _backgroundTexture = CreateTexture(backgroundColor);
+            }
+
+            _textureCache ??= new TextureCache();
+
+            if (_presenter == null && gameManager?.Instance!?.Stats)
+            {
+                _presenter ??= new StatPresenter(gameManager?.Instance.Stats);
+            }
+
+            if (!gameManager?.Instance!?.Stats) return;
+            foreach (GameStat stat in gameManager!.Instance?.Stats.GetStats()!)
+            {
+                if (stat == null) continue;
+                if (!_statNameContent.ContainsKey(stat.Stat))
+                    _statNameContent[stat.Stat] = new GUIContent(stat.Stat.ToString());
+                if (!_statValueContent.ContainsKey(stat.Stat))
+                    _statValueContent[stat.Stat] = new GUIContent($"{Mathf.RoundToInt(stat.LastValue)}/{stat.MaxValue}");
+            }
+        }
+
+        private void Update()
         {
             _presenter?.Update(Time.deltaTime);
         }
 
-        void OnGUI()
+        private void OnGUI()
         {
-            if (!gameManager || !gameManager.statManager) return;
+            if (!gameManager?.Instance!?.Stats) return;
 
             if (_labelStyle == null || _valueStyle == null)
             {
@@ -65,16 +88,20 @@ namespace Encore.UI
                     { alignment = TextAnchor.MiddleRight, fontSize = FontSize - 4 };
             }
 
-            // Fullscreen panel
-            Rect panelRect = new Rect(0, 0, Screen.width, Screen.height);
+            Rect panelRect = new(0, 0, Screen.width, Screen.height);
             GUI.DrawTexture(panelRect, _backgroundTexture);
 
-            Rect inner = new Rect(panelRect.x + UIMargin, panelRect.y + UIMargin,
-                Mathf.Max(0, panelRect.width - 2f * UIMargin), Mathf.Max(0, panelRect.height - 2f * UIMargin));
+            Rect screenRect = new(
+                panelRect.x + UIMargin,
+                panelRect.y + UIMargin,
+                Mathf.Max(0, panelRect.width - 2f * UIMargin),
+                Mathf.Max(0, panelRect.height - 2f * UIMargin)
+            );
+            GUILayout.BeginArea(screenRect);
 
-            GUILayout.BeginArea(inner);
             GUILayout.Space(4);
 
+            DrawDayCounter();
             DrawStats();
 
             GUILayout.Space(12);
@@ -82,19 +109,29 @@ namespace Encore.UI
             DrawActionButtons();
 
             GUILayout.Space(8);
-            DrawGameButtons();
+
+            DrawStartGameAndResetButtons();
 
             GUILayout.EndArea();
         }
 
+        private void DrawDayCounter()
+        {
+            int currentDay = gameManager?.Instance?.Days?.CurrentDay ?? 0;
+            int totalDays = gameManager?.Instance?.Days?.TotalDays ?? 0;
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"Day: {currentDay} / {totalDays}", _labelStyle);
+            GUILayout.EndHorizontal();
+        }
+
         private void DrawStats()
         {
-            var stats = gameManager?.statManager?.GetStats();
+            GameStat[] stats = gameManager?.Instance?.Stats?.GetStats();
             if (stats == null) return;
 
             foreach (GameStat stat in stats)
             {
-                if (stat == null) continue; // defensive: skip null stat entries
+                if (stat == null) continue; 
                 DrawStat(stat);
                 GUILayout.Space(StatSpacing);
             }
@@ -102,29 +139,42 @@ namespace Encore.UI
 
         private void DrawStat(GameStat gameStat)
         {
-            if (gameStat == null) return; // defensive: avoid NRE when called with a null stat
+            if (gameStat == null) return;
+            {
+                GUILayout.BeginVertical();
+                GUILayout.BeginHorizontal();
+                if (!_statNameContent.TryGetValue(gameStat.Stat, out GUIContent nameContent))
+                {
+                    nameContent = new GUIContent(gameStat.Stat.ToString());
+                    _statNameContent[gameStat.Stat] = nameContent;
+                }
+                GUILayout.Label(nameContent, _labelStyle);
 
-            float displayed = _presenter?.GetDisplayedValue(gameStat) ?? gameStat.CurrentValue;
+                if (!_statValueContent.TryGetValue(gameStat.Stat, out GUIContent valueContent))
+                {
+                    valueContent = new GUIContent();
+                    _statValueContent[gameStat.Stat] = valueContent;
+                }
+                string newValueText = $"{Mathf.RoundToInt(gameStat.LastValue)}/{gameStat.MaxValue}";
+                if (valueContent.text != newValueText)
+                {
+                    valueContent.text = newValueText;
+                }
+                GUILayout.Label(valueContent, _valueStyle, GUILayout.Width(StatBarWidth));
+                GUILayout.EndHorizontal();
+                Rect statBar = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.Height(StatBarHeight),
+                    GUILayout.ExpandWidth(true));
+                GUI.DrawTexture(statBar, _backgroundTexture);
 
-            float statPercentage = Mathf.Clamp01(displayed / gameStat.MaxValue);
-            GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(gameStat.Stat.ToString(), _labelStyle);
-            GUILayout.Label($"{Mathf.RoundToInt(displayed)}/{gameStat.MaxValue}", _valueStyle,
-                GUILayout.Width(StatBarWidth));
-            GUILayout.EndHorizontal();
+                float statPercentage = gameStat.MaxValue == 0
+                    ? 0f
+                    : Mathf.Clamp01(gameStat.LastValue / (float)gameStat.MaxValue);
+                float fillWidth = statPercentage > 0f ? Mathf.Max(1f, statBar.width * statPercentage) : 0f;
+                Rect fillRect = new(statBar.x, statBar.y, fillWidth, statBar.height);
 
-
-            Rect statBar = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.Height(StatBarHeight),
-                GUILayout.ExpandWidth(true));
-
-            GUI.DrawTexture(statBar, _backgroundTexture);
-
-            float fillWidth = statPercentage > 0f ? Mathf.Max(1f, statBar.width * statPercentage) : 0f;
-            Rect fillRect = new Rect(statBar.x, statBar.y, fillWidth, statBar.height);
-
-            GUI.DrawTexture(fillRect, _textureCache.Get(gameStat.Colour));
-            GUILayout.EndVertical();
+                GUI.DrawTexture(fillRect, _textureCache.Get(gameStat.Colour));
+                GUILayout.EndVertical();
+            }
         }
 
         private void DrawActionButtons()
@@ -132,35 +182,28 @@ namespace Encore.UI
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(nameof(GameActions.Rest), GUILayout.Height(30)))
             {
-                gameManager.DoAction(GameActions.Rest);
+                gameManager.DoAction(new SimpleGameAction(GameActions.Rest));
             }
 
             if (GUILayout.Button(nameof(GameActions.Practice), GUILayout.Height(30)))
             {
-                gameManager.DoAction(GameActions.Practice);
+                gameManager.DoAction(new SimpleGameAction(GameActions.Practice));
             }
 
             if (GUILayout.Button(nameof(GameActions.Gig), GUILayout.Height(30)))
             {
-                gameManager.DoAction(GameActions.Gig);
+                gameManager.DoAction(new SimpleGameAction(GameActions.Gig));
             }
 
             GUILayout.EndHorizontal();
         }
 
-        private void DrawGameButtons()
+        private void DrawStartGameAndResetButtons()
         {
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Reset Stats", GUILayout.Height(24)))
             {
-                if (gameManager?.statManager)
-                {
-                    gameManager.statManager.ResetStats();
-                }
-                else
-                {
-                    Debug.LogWarning("MainUI: Cannot reset stats because StatManager is not available.");
-                }
+                gameManager?.Instance?.Stats?.ResetStats();
             }
 
             if (GUILayout.Button("Start Game (Easy)", GUILayout.Height(24)))
@@ -181,19 +224,19 @@ namespace Encore.UI
             GUILayout.EndHorizontal();
         }
 
-        private Texture2D CreateTexture(Color col)
+        private static Texture2D CreateTexture(Color col)
         {
-            Texture2D texture = new Texture2D(1, 1);
+            Texture2D texture = new(1, 1);
             texture.SetPixel(0, 0, col);
             texture.Apply();
-            texture.hideFlags = HideFlags.DontSave; // Prevent memory leaks
+            texture.hideFlags = HideFlags.DontSave;
             return texture;
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             if (_backgroundTexture) DestroyImmediate(_backgroundTexture);
-            _textureCache.Clear();
+            _textureCache?.Clear();
             _presenter = null;
         }
     }

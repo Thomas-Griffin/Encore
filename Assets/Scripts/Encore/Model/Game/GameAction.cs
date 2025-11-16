@@ -1,18 +1,21 @@
 using Encore.Abstractions.Interfaces;
+using Encore.Systems.GameEvent.Events;
 
 namespace Encore.Model.Game
 {
     public abstract class GameAction : ISelectable
     {
-        public readonly GameActions ActionType;
+        public readonly GameActions Type;
 
-        protected GameAction(GameActions actionType)
+        protected GameAction(GameActions type)
         {
-            ActionType = actionType;
+            Type = type;
         }
-
+        
         public void OnSelect()
         {
         }
+        
+        public abstract GameEventBase ToGameEvent();
     }
 }

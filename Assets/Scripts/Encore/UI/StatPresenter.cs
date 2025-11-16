@@ -1,7 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
 using Encore.Model.Stats;
-using Encore.Systems;
+using Encore.Systems.Core;
 using UnityEngine;
 
 namespace Encore.UI
@@ -9,79 +7,47 @@ namespace Encore.UI
     public class StatPresenter
     {
         private readonly StatManager _statManager;
-        private readonly Dictionary<string, float> _displayedValues = new();
 
-        // units per second
-        private const float AnimationSpeed = 30f;
+        private const float AnimationDurationSeconds = 1f;
+
+        private const float FinishEpsilonPercent = 0.001f;
 
         public StatPresenter(StatManager statManager)
         {
             _statManager = statManager;
-            if (_statManager) InitializeDisplayedValues();
-        }
-
-        private void InitializeDisplayedValues()
-        {
-            GameStat[] stats = _statManager?.GetStats();
-            if (stats == null) return;
-
-            foreach (GameStat gameStat in stats)
-            {
-                if (gameStat == null) continue; // defensive: skip null entries
-
-                _displayedValues[gameStat.Stat.ToString()] = gameStat.CurrentValue;
-            }
         }
 
         public void Update(float deltaTime)
         {
             if (!_statManager) return;
-
-            // cache stats and guard against null returns
-            GameStat[] stats = _statManager?.GetStats();
-            if (stats != null)
+            GameStat[] stats = _statManager.GetStats();
+            if (stats == null) return;
+            foreach (GameStat gameStat in stats)
             {
-                foreach (GameStat gameStat in stats)
+                if (gameStat == null) continue;
+
+                if (gameStat.MaxValue <= 0)
                 {
-                    if (gameStat == null) continue; // defensive
-
-                    string key = gameStat.Stat.ToString();
-                    float target = gameStat.CurrentValue;
-
-                    if (!_displayedValues.TryGetValue(key, out float displayed))
-                    {
-                        _displayedValues[key] = target;
-                        continue;
-                    }
-
-                    if (Mathf.Approximately(displayed, target)) continue;
-
-                    _displayedValues[key] = Mathf.MoveTowards(displayed, target, AnimationSpeed * deltaTime);
+                    gameStat.DisplayValue = gameStat.CurrentValue;
+                    gameStat.LastValue = gameStat.CurrentValue;
+                    continue;
                 }
-            }
 
-            // cleanup removed stats
-            HashSet<string> existingKeys = new();
-            GameStat[] existingStats = _statManager?.GetStats();
-            if (existingStats != null)
-            {
-                foreach (GameStat gameStat in existingStats)
+                float speed = gameStat.MaxValue / AnimationDurationSeconds;
+
+                float epsilon = Mathf.Max(FinishEpsilonPercent * gameStat.MaxValue, 0.001f);
+
+                if (Mathf.Abs(gameStat.DisplayValue - gameStat.CurrentValue) <= epsilon)
                 {
-                    if (gameStat == null) continue;
-                    existingKeys.Add(gameStat.Stat.ToString());
+                    gameStat.DisplayValue = gameStat.CurrentValue;
+                    gameStat.LastValue = gameStat.CurrentValue;
+                    continue;
                 }
+
+                gameStat.DisplayValue = Mathf.MoveTowards(gameStat.DisplayValue, gameStat.CurrentValue,
+                    speed * deltaTime);
+                gameStat.LastValue = Mathf.RoundToInt(gameStat.DisplayValue);
             }
-
-            List<string> toRemove = _displayedValues.Keys.Where(key => !existingKeys.Contains(key)).ToList();
-
-            foreach (string key in toRemove) _displayedValues.Remove(key);
-        }
-
-        public float GetDisplayedValue(GameStat stat)
-        {
-            if (stat == null) return 0f;
-            if (_displayedValues.TryGetValue(stat.Stat.ToString(), out float v)) return v;
-            return stat.CurrentValue;
         }
     }
 }
