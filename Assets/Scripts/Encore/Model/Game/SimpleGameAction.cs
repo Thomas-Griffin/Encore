@@ -37,8 +37,11 @@ namespace Encore.Model.Game
                     return gigEvent;
                 }
                 default:
-                    throw new System.NotImplementedException($"No event mapping for action type {Type}");
+                    UnityEngine.Debug.Log($"No event mapping for action type {Type}");
+                    break;
             }
+
+            return null;
         }
     }
 }
