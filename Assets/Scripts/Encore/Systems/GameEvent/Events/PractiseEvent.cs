@@ -1,4 +1,3 @@
-using System;
 using Encore.Model.Game;
 
 namespace Encore.Systems.GameEvent.Events
