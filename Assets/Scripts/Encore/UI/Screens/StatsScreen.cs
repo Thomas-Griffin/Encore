@@ -1,18 +1,39 @@
+using System.Collections.Generic;
 using Encore.Model.Game;
 using Encore.Model.Stats;
 using Encore.Systems.Core;
+using Encore.UI.Helpers;
 using UnityEngine;
-using System.Collections.Generic;
 
-namespace Encore.UI
+namespace Encore.UI.Screens
 {
-    public class MainUI : MonoBehaviour
+    public class StatsScreen : UIScreenBase
     {
-        public GameManager gameManager;
+        public override void OnInitialise(GameManager game)
+        {
+            base.OnInitialise(game);
+            screenName = UIScreenNames.StatsScreen;
+            gameManager = game ?? gameManager;
 
-        public Color backgroundColor = Color.black;
+            _textureCache ??= new TextureCache();
 
-        private Texture2D _backgroundTexture;
+            if (_presenter == null && gameManager?.Instance!?.Stats)
+            {
+                _presenter ??= new StatPresenter(gameManager?.Instance.Stats);
+            }
+
+            if (!gameManager?.Instance!?.Stats) return;
+            foreach (GameStat stat in gameManager!.Instance?.Stats.GetStats()!)
+            {
+                if (stat == null) continue;
+                if (!_statNameContent.ContainsKey(stat.Stat))
+                    _statNameContent[stat.Stat] = new GUIContent(stat.Stat.ToString());
+                if (!_statValueContent.ContainsKey(stat.Stat))
+                    _statValueContent[stat.Stat] =
+                        new GUIContent($"{Mathf.RoundToInt(stat.LastValue)}/{stat.MaxValue}");
+            }
+        }
+
 
         private TextureCache _textureCache;
         private StatPresenter _presenter;
@@ -29,49 +50,6 @@ namespace Encore.UI
         private const float StatBarHeight = 20f;
         private const int FontSize = 30;
 
-
-        private void Awake()
-        {
-            if (!gameManager)
-            {
-                gameManager = FindAnyObjectByType<GameManager>();
-                if (!gameManager)
-                {
-                    Debug.LogError(
-                        "MainUI: No GameManager assigned and none found in scene. UI will be disabled until a GameManager is present.");
-                }
-            }
-
-            Initialise(gameManager);
-        }
-
-        public void Initialise(GameManager game)
-        {
-            gameManager = game ?? gameManager;
-
-            if (_backgroundTexture == null)
-            {
-                _backgroundTexture = CreateTexture(backgroundColor);
-            }
-
-            _textureCache ??= new TextureCache();
-
-            if (_presenter == null && gameManager?.Instance!?.Stats)
-            {
-                _presenter ??= new StatPresenter(gameManager?.Instance.Stats);
-            }
-
-            if (!gameManager?.Instance!?.Stats) return;
-            foreach (GameStat stat in gameManager!.Instance?.Stats.GetStats()!)
-            {
-                if (stat == null) continue;
-                if (!_statNameContent.ContainsKey(stat.Stat))
-                    _statNameContent[stat.Stat] = new GUIContent(stat.Stat.ToString());
-                if (!_statValueContent.ContainsKey(stat.Stat))
-                    _statValueContent[stat.Stat] = new GUIContent($"{Mathf.RoundToInt(stat.LastValue)}/{stat.MaxValue}");
-            }
-        }
-
         private void Update()
         {
             _presenter?.Update(Time.deltaTime);
@@ -79,6 +57,8 @@ namespace Encore.UI
 
         private void OnGUI()
         {
+            if (!IsVisible()) return;
+            
             if (!gameManager?.Instance!?.Stats) return;
 
             if (_labelStyle == null || _valueStyle == null)
@@ -89,7 +69,7 @@ namespace Encore.UI
             }
 
             Rect panelRect = new(0, 0, Screen.width, Screen.height);
-            GUI.DrawTexture(panelRect, _backgroundTexture);
+            GUI.DrawTexture(panelRect, BackgroundTexture);
 
             Rect screenRect = new(
                 panelRect.x + UIMargin,
@@ -110,7 +90,7 @@ namespace Encore.UI
 
             GUILayout.Space(8);
 
-            DrawStartGameAndResetButtons();
+            DrawExitButton();
 
             GUILayout.EndArea();
         }
@@ -131,7 +111,7 @@ namespace Encore.UI
 
             foreach (GameStat stat in stats)
             {
-                if (stat == null) continue; 
+                if (stat == null) continue;
                 DrawStat(stat);
                 GUILayout.Space(StatSpacing);
             }
@@ -148,6 +128,7 @@ namespace Encore.UI
                     nameContent = new GUIContent(gameStat.Stat.ToString());
                     _statNameContent[gameStat.Stat] = nameContent;
                 }
+
                 GUILayout.Label(nameContent, _labelStyle);
 
                 if (!_statValueContent.TryGetValue(gameStat.Stat, out GUIContent valueContent))
@@ -155,16 +136,18 @@ namespace Encore.UI
                     valueContent = new GUIContent();
                     _statValueContent[gameStat.Stat] = valueContent;
                 }
+
                 string newValueText = $"{Mathf.RoundToInt(gameStat.LastValue)}/{gameStat.MaxValue}";
                 if (valueContent.text != newValueText)
                 {
                     valueContent.text = newValueText;
                 }
+
                 GUILayout.Label(valueContent, _valueStyle, GUILayout.Width(StatBarWidth));
                 GUILayout.EndHorizontal();
                 Rect statBar = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.Height(StatBarHeight),
                     GUILayout.ExpandWidth(true));
-                GUI.DrawTexture(statBar, _backgroundTexture);
+                GUI.DrawTexture(statBar, BackgroundTexture);
 
                 float statPercentage = gameStat.MaxValue == 0
                     ? 0f
@@ -198,46 +181,22 @@ namespace Encore.UI
             GUILayout.EndHorizontal();
         }
 
-        private void DrawStartGameAndResetButtons()
+        private static void DrawExitButton()
         {
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Reset Stats", GUILayout.Height(24)))
+            if (GUILayout.Button("Exit", GUILayout.Height(24)))
             {
-                gameManager?.Instance?.Stats?.ResetStats();
-            }
-
-            if (GUILayout.Button("Start Game (Easy)", GUILayout.Height(24)))
-            {
-                gameManager?.StartGame(DifficultyLevel.Easy);
-            }
-
-            if (GUILayout.Button("Start Game (Medium)", GUILayout.Height(24)))
-            {
-                gameManager?.StartGame(DifficultyLevel.Medium);
-            }
-
-            if (GUILayout.Button("Start Game (Hard)", GUILayout.Height(24)))
-            {
-                gameManager?.StartGame(DifficultyLevel.Hard);
+                UIScreenManager.Instance.ShowScreen(UIScreenNames.MainMenu);
             }
 
             GUILayout.EndHorizontal();
         }
 
-        private static Texture2D CreateTexture(Color col)
+        protected override void OnDestroy()
         {
-            Texture2D texture = new(1, 1);
-            texture.SetPixel(0, 0, col);
-            texture.Apply();
-            texture.hideFlags = HideFlags.DontSave;
-            return texture;
-        }
-
-        private void OnDestroy()
-        {
-            if (_backgroundTexture) DestroyImmediate(_backgroundTexture);
             _textureCache?.Clear();
             _presenter = null;
+            base.OnDestroy();
         }
     }
 }

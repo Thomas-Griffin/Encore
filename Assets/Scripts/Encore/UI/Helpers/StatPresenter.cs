@@ -2,7 +2,7 @@ using Encore.Model.Stats;
 using Encore.Systems.Core;
 using UnityEngine;
 
-namespace Encore.UI
+namespace Encore.UI.Helpers
 {
     public class StatPresenter
     {

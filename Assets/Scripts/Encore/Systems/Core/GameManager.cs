@@ -84,7 +84,7 @@ namespace Encore.Systems.Core
             PerformAutoSave();
         }
 
-        public void RecordAndApplyEvent(GameEventBase gameEvent)
+        private void RecordAndApplyEvent(GameEventBase gameEvent)
         {
             EnsureInitialised();
 

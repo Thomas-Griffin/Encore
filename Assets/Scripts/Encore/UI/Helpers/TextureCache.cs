@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Encore.UI
+namespace Encore.UI.Helpers
 {
     public class TextureCache
     {

@@ -10,7 +10,7 @@ namespace Encore.Systems.Core
     [CreateAssetMenu(menuName = "Encore/StatManager")]
     public class StatManager : ScriptableObject
     {
-        public int FameTarget { get; set; }
+        private int FameTarget { get; set; }
 
         // Skill requirement to gig
         public int SkillBarrierForGig { get; private set; }
