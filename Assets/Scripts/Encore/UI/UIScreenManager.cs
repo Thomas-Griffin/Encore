@@ -40,7 +40,6 @@ namespace Encore.UI
             {
                 screen.SetVisible(screen.screenName == _currentScreen);
             }
-
         }
 
         public void UnregisterScreen(UIScreenBase screen)
@@ -98,21 +97,10 @@ namespace Encore.UI
                 RegisterScreen(screen);
             }
 
-            if (!_screens.ContainsKey(UIScreenNames.MainMenu))
-            {
-                GameObject startObj = new("StartGameScreen") { hideFlags = HideFlags.DontSave };
-                startObj.transform.SetParent(transform, false);
-                startObj.SetActive(false);
-                StartGameScreen start = startObj.AddComponent<StartGameScreen>();
-                RegisterScreen(start);
-            }
-
-            if (_screens.ContainsKey(UIScreenNames.StatsScreen)) return;
-            GameObject statsObj = new("StatsScreen") { hideFlags = HideFlags.DontSave };
-            statsObj.transform.SetParent(transform, false);
-            statsObj.SetActive(false);
-            StatsScreen stats = statsObj.AddComponent<StatsScreen>();
-            RegisterScreen(stats);
+            InitialiseScreen(UIScreenNames.MainMenu);
+            InitialiseScreen(UIScreenNames.StatsScreen);
+            InitialiseScreen(UIScreenNames.WinScreen);
+            InitialiseScreen(UIScreenNames.LoseScreen);
 
             bool hasProgress = GameManager?.Instance?.Events?.GetAllEvents() is { Count: > 0 };
             ShowScreen(hasProgress ? UIScreenNames.StatsScreen : UIScreenNames.MainMenu);
@@ -120,7 +108,24 @@ namespace Encore.UI
             _initialisedComplete = true;
         }
 
-        private void HideAllScreens()
+        private void InitialiseScreen(UIScreenNames screenName)
+        {
+            if (_screens.ContainsKey(screenName)) return;
+            GameObject screenContainer = new(screenName.ToString()) { hideFlags = HideFlags.DontSave };
+            screenContainer.transform.SetParent(transform, false);
+            screenContainer.SetActive(false);
+            UIScreenBase screen = screenName switch
+            {
+                UIScreenNames.MainMenu => screenContainer.AddComponent<StartGameScreen>(),
+                UIScreenNames.StatsScreen => screenContainer.AddComponent<StatsScreen>(),
+                UIScreenNames.WinScreen => screenContainer.AddComponent<WinScreen>(),
+                UIScreenNames.LoseScreen => screenContainer.AddComponent<LoseScreen>(),
+                _ => null
+            };
+            RegisterScreen(screen);
+        }
+
+        public void HideAllScreens()
         {
             List<UIScreenBase> screens = new(_screens.Values);
             foreach (UIScreenBase screen in screens.Where(screen => screen.IsVisible()))

@@ -8,6 +8,7 @@ namespace Encore.UI.Screens
     {
         private GUIStyle _titleStyle;
         private GUIStyle _buttonStyle;
+        private GUIStyle _labelStyle;
 
         public override void OnInitialise(GameManager game)
         {
@@ -27,6 +28,13 @@ namespace Encore.UI.Screens
                     alignment = TextAnchor.MiddleCenter,
                     fontSize = 48,
                     fontStyle = FontStyle.Bold
+                };
+                
+                _labelStyle = new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontSize = 32,
+                    fontStyle = FontStyle.Normal
                 };
 
                 _buttonStyle = new GUIStyle(GUI.skin.button)
@@ -49,6 +57,9 @@ namespace Encore.UI.Screens
             GUILayout.FlexibleSpace();
 
             GUILayout.Label("Encore!", _titleStyle, GUILayout.Height(64));
+            GUILayout.Space(20);
+            
+            GUILayout.Label("New Game:", _labelStyle, GUILayout.Height(64));
             GUILayout.Space(20);
 
             GUILayout.BeginHorizontal();
@@ -77,6 +88,19 @@ namespace Encore.UI.Screens
             GUILayout.EndHorizontal();
 
             GUILayout.FlexibleSpace();
+            GUILayout.FlexibleSpace();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
+            if (GUILayout.Button("Quit", _buttonStyle, GUILayout.Width(140)))
+            {
+                UIScreenManager.Instance.HideAllScreens();
+                Application.Quit();
+            }
+
+            GUILayout.EndHorizontal();
+
             GUILayout.EndArea();
         }
 

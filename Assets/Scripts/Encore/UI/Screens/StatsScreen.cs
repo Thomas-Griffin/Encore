@@ -90,7 +90,7 @@ namespace Encore.UI.Screens
 
             GUILayout.Space(8);
 
-            DrawExitButton();
+            DrawMainMenuButton();
 
             GUILayout.EndArea();
         }
@@ -181,10 +181,10 @@ namespace Encore.UI.Screens
             GUILayout.EndHorizontal();
         }
 
-        private static void DrawExitButton()
+        private static void DrawMainMenuButton()
         {
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Exit", GUILayout.Height(24)))
+            if (GUILayout.Button("Main Menu", GUILayout.Height(24)))
             {
                 UIScreenManager.Instance.ShowScreen(UIScreenNames.MainMenu);
             }
