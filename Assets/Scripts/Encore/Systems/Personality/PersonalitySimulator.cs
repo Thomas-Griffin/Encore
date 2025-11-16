@@ -21,7 +21,6 @@ namespace Encore.Systems.Personality
                 .Sum();
 
             float quality = Mathf.Clamp((averageContribution * 50f) + (totalCreativity * 30f), 0f, 100f);
-            Debug.Log($"BandSimulator: Show quality for {band.Name} = {quality}");
             return quality;
         }
 

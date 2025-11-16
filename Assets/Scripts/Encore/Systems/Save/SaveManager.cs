@@ -15,13 +15,8 @@ namespace Encore.Systems.Save
 
         public void EnsureSaveDirectoryExists()
         {
-            if (!Directory.Exists(_saveDirectory))
-            {
-                Debug.Log("Save directory not found. Creating new save directory at " + _saveDirectory);
-                Directory.CreateDirectory(_saveDirectory);
-            }
-
-            Debug.Log("Using save directory located at: " + _saveDirectory);
+            if (Directory.Exists(_saveDirectory)) return;
+            Directory.CreateDirectory(_saveDirectory);
         }
 
         public void LoadMostRecentSave()
@@ -31,20 +26,15 @@ namespace Encore.Systems.Save
             {
                 if (GetAllSaves().Count == 1)
                 {
-                    Debug.Log(
-                        $"Most recent save file found: {mostRecentSave.saveName}{SaveFileExtension}. Loading this save file."
-                    );
                     CurrentSaveFileName = mostRecentSave.saveName + SaveFileExtension;
                 }
                 else if (GetAllSaves().Count > 1)
                 {
-                    Debug.Log($"Multiple save files found. Using most recent save file: {mostRecentSave.saveName}.");
                     CurrentSaveFileName = GetMostRecentSave().saveName;
                 }
             }
             else
             {
-                Debug.Log("No save files found. Creating a new save file.");
                 CurrentSaveFileName = NewSaveFile().saveName;
             }
         }
@@ -68,10 +58,9 @@ namespace Encore.Systems.Save
             string fullPath = Path.Combine(_saveDirectory, newSaveFileName + SaveFileExtension);
             if (File.Exists(fullPath))
             {
-                Debug.Log($"Save file {newSaveFileName}{SaveFileExtension} already exists. Loading existing save file.");
                 return LoadFromFile(newSaveFileName);
             }
-            Debug.Log($"Creating new save file: {newSaveFileName}{SaveFileExtension} at location {_saveDirectory}"); 
+
             File.Create(fullPath).Dispose();
 
             return LoadFromFile(newSaveFileName);
@@ -132,7 +121,7 @@ namespace Encore.Systems.Save
             string firstLine = reader.ReadLine();
             return string.IsNullOrWhiteSpace(firstLine) ? null : JsonUtility.FromJson<SaveData>(firstLine);
         }
-        
+
         public void DeleteAllSaves()
         {
             List<SaveData> saves = GetAllSaves();

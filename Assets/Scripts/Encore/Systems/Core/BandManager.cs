@@ -31,7 +31,6 @@ namespace Encore.Systems.Core
                 supportedBy: new List<Band>()
             );
             PlayerBands.Add(band);
-            Debug.Log("BandManager: Added new band " + name);
         }
 
         public void AddMemberToBand(
@@ -60,7 +59,6 @@ namespace Encore.Systems.Core
                 PersonalityTraits: normalizedTraits
             );
             band.Members.Add(newMember);
-            Debug.Log("BandManager: Added new member " + memberName + " to band " + band.Name);
         }
 
         public void RemoveMemberFromBand(
@@ -71,11 +69,6 @@ namespace Encore.Systems.Core
             if (band.Members.Contains(member))
             {
                 band.Members.Remove(member);
-                Debug.Log("BandManager: Removed member " + member.Name + " from band " + band.Name);
-            }
-            else
-            {
-                Debug.LogWarning("BandManager: Member " + member.Name + " not found in band " + band.Name);
             }
         }
 
@@ -85,7 +78,6 @@ namespace Encore.Systems.Core
         )
         {
             band.Genre = newGenre;
-            Debug.Log("BandManager: Changed genre of band " + band.Name + " to " + newGenre);
         }
     }
 }

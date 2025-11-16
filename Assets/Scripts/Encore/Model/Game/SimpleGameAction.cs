@@ -36,9 +36,6 @@ namespace Encore.Model.Game
                     };
                     return gigEvent;
                 }
-                default:
-                    UnityEngine.Debug.Log($"No event mapping for action type {Type}");
-                    break;
             }
 
             return null;

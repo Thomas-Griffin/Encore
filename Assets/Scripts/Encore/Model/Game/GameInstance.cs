@@ -49,8 +49,6 @@ namespace Encore.Model.Game
                 lastEvent.Action.Type == gameEvent.Action.Type)
             {
                 gameEvent.ConsecutiveEventRepetitions = lastEvent.ConsecutiveEventRepetitions + 1;
-                Debug.Log(
-                    $"Event '{gameEvent.EventName}' is a repetition of the last action '{gameEvent.Action.Type}'. count = {gameEvent.ConsecutiveEventRepetitions}");
             }
             else
             {

@@ -2,6 +2,7 @@ using System;
 using Encore.Model.Game;
 using Encore.Systems.GameEvent.Events;
 using Encore.Systems.Save;
+using Encore.UI;
 using UnityEngine;
 
 namespace Encore.Systems.Core
@@ -50,15 +51,9 @@ namespace Encore.Systems.Core
         public void StartGame(DifficultyLevel difficulty)
         {
             EnsureInitialised();
-
-            if (Instance is { State: GameState.Win or GameState.Lose })
-            {
-                Debug.Log("Previous game ended. Starting a new game.");
-            }
-
+            
             if (SaveManager.SaveFileExists(Instance?.SaveFileName))
             {
-                Debug.Log("Existing save file found. Loading previous game state.");
                 Instance = SaveManager.LoadFromFile(Instance?.SaveFileName).ToGameInstance();
                 return;
             }
@@ -86,16 +81,22 @@ namespace Encore.Systems.Core
 
         private void RecordAndApplyEvent(GameEventBase gameEvent)
         {
-            EnsureInitialised();
-
-            Instance.Events.Append(Instance.ApplyEvent(gameEvent));
-            if (gameEvent.DelegateEvent != null)
+            while (true)
             {
-                RecordAndApplyEvent(gameEvent.DelegateEvent);
+                EnsureInitialised();
+
+                Instance.Events.Append(Instance.ApplyEvent(gameEvent));
+                if (gameEvent.DelegateEvent != null)
+                {
+                    gameEvent = gameEvent.DelegateEvent;
+                    continue;
+                }
+
+                break;
             }
         }
 
-        public void PerformAutoSave()
+        private void PerformAutoSave()
         {
             EnsureInitialised();
 
@@ -106,7 +107,6 @@ namespace Encore.Systems.Core
             }
 
             SaveManager.SaveToFile(new SaveData(saveName, 0, Instance, DateTime.UtcNow));
-            Debug.Log("Game auto-saved.");
         }
 
         public void CheckForEndGameConditions()
@@ -117,10 +117,10 @@ namespace Encore.Systems.Core
             switch (Instance?.State)
             {
                 case GameState.Win:
-                    Debug.Log("You Win!");
+                    UIScreenManager.Instance.ShowScreen(UIScreenNames.WinScreen);
                     break;
                 case GameState.Lose:
-                    Debug.Log("You Lose!");
+                    UIScreenManager.Instance.ShowScreen(UIScreenNames.LoseScreen);
                     break;
                 case GameState.Playing:
                     break;

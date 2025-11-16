@@ -266,10 +266,9 @@ namespace Encore.Systems.Core
                 {
                     stat.Reset();
                 }
-                catch (Exception exception)
+                catch (Exception ignored)
                 {
-                    Debug.LogError(
-                        $"StatManager.ResetStats: Failed to reset stat '{stat.Stat.ToString() ?? "<null>"}' - {exception}");
+                    // ignored
                 }
             }
         }

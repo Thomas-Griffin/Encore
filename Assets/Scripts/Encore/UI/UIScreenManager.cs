@@ -41,13 +41,11 @@ namespace Encore.UI
                 screen.SetVisible(screen.screenName == _currentScreen);
             }
 
-            Debug.Log($"UIScreenManager: Registered screen under name '{screen.screenName}'");
         }
 
         public void UnregisterScreen(UIScreenBase screen)
         {
             if (!screen) return;
-            Debug.Log($"UIScreenManager: Unregistering screen '{screen.screenName}'");
             _screens.Remove(screen.screenName);
         }
 

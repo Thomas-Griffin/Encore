@@ -27,20 +27,8 @@ namespace Encore.Systems.Personality
             }
 
             HashSet<PersonalityTraits> seen = new();
-            List<PersonalityTraits> output = new();
-            foreach (PersonalityTraits personalityTrait in traitList)
-            {
-                if (toRemove.Contains(personalityTrait))
-                {
-                    Debug.LogWarning(
-                        $"PersonalityNormaliser: Removed conflicting trait {personalityTrait} because it conflicts with a higher-priority trait.");
-                    continue;
-                }
 
-                if (seen.Add(personalityTrait)) output.Add(personalityTrait);
-            }
-
-            return output;
+            return traitList.Where(personalityTrait => !toRemove.Contains(personalityTrait)).Where(personalityTrait => seen.Add(personalityTrait)).ToList();
         }
     }
 }

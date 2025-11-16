@@ -7,7 +7,7 @@ namespace Encore.UI
         StatsScreen,
         Settings,
         PauseMenu,
-        GameOver,
+        LoseScreen,
         WinScreen
     }
 }
