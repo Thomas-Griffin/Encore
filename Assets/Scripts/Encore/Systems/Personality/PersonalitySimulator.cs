@@ -1,7 +1,6 @@
 using System.Linq;
 using Encore.Model.Band;
 using Encore.Model.BandMember;
-using NUnit.Framework;
 using UnityEngine;
 
 namespace Encore.Systems.Personality
@@ -61,17 +60,12 @@ namespace Encore.Systems.Personality
 
                 PersonalityDeltas personalityDeltas = PersonalityAggregator.AggregateForBandMember(bandMember);
 
-                TestContext.WriteLine(personalityDeltas);
-
-                float tierSize = 0.25f; // each morale tier corresponds to 0.25 in normalized 0..1 space
+                float tierSize = 0.25f;
                 float adjustedModifier = 1f - Mathf.Clamp01(personalityDeltas.MoraleDelta);
                 float finalChange = baseMoraleChange * tierSize * adjustedModifier;
 
                 float currentMoraleValue = MoraleToFloat(bandMember.Morale);
                 float updatedMoraleValue = Mathf.Clamp01(currentMoraleValue + finalChange);
-                TestContext.WriteLine(
-                    $"PersonalitySimulator: member={bandMember.Nickname} moraleDelta={personalityDeltas.MoraleDelta} adjustedModifier={adjustedModifier} finalChange={finalChange} currentMoraleValue={currentMoraleValue} updatedMoraleValue={updatedMoraleValue}"
-                );
                 band.Members[i] = bandMember with { Morale = FloatToMorale(updatedMoraleValue) };
             }
         }
