@@ -1,0 +1,78 @@
+name: CI - Build & Deploy to Unity Play
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+env:
+  BUILD_DIR: build
+
+jobs:
+  build-and-deploy:
+    name: Build (WebGL) and deploy to Unity Play
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Unity Editor version from ProjectVersion.txt
+        id: get-version
+        run: |
+          set -euo pipefail
+          if [ ! -f ProjectSettings/ProjectVersion.txt ]; then
+            echo "ProjectSettings/ProjectVersion.txt not found" >&2
+            exit 1
+          fi
+          version=$(grep "m_EditorVersion:" ProjectSettings/ProjectVersion.txt | sed 's/.*: //')
+          echo "Found Unity version: $version"
+          echo "unity_version=$version" >> $GITHUB_OUTPUT
+
+      - name: Setup Unity (game-ci)
+        uses: game-ci/unity-setup@v2
+        with:
+          unityVersion: ${{ steps.get-version.outputs.unity_version }}
+
+      - name: Build WebGL using game-ci/unity-builder
+        uses: game-ci/unity-builder@v3
+        with:
+          projectPath: .
+          targetPlatform: WebGL
+          buildName: ${{ env.BUILD_DIR }}
+          cache: true
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+
+      - name: Archive WebGL build
+        run: |
+          set -euo pipefail
+          if [ -d "${{ env.BUILD_DIR }}/WebGL" ]; then
+            cd "${{ env.BUILD_DIR }}/WebGL"
+            zip -r "$GITHUB_WORKSPACE/${{ env.BUILD_DIR }}_webgl.zip" .
+          else
+            echo "Expected WebGL build at ${{ env.BUILD_DIR }}/WebGL not found" >&2
+            ls -la
+            exit 1
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webgl-build
+          path: ${{ env.BUILD_DIR }}_webgl.zip
+
+      - name: Deploy to Unity Play
+        if: ${{ always() }}
+        env:
+          UNITY_PLAY_TOKEN: ${{ secrets.UNITY_PLAY_TOKEN }}
+          UNITY_PROJECT_ID: ${{ secrets.UNITY_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${UNITY_PLAY_TOKEN:-}" ] || [ -z "${UNITY_PROJECT_ID:-}" ]; then
+            echo "UNITY_PLAY_TOKEN and UNITY_PROJECT_ID must be set as repository secrets to deploy to Unity Play. Skipping deploy." >&2
+            exit 78
+          fi
+          bash .github/scripts/upload-to-unity-play.sh "${{ env.BUILD_DIR }}_webgl.zip" "$UNITY_PROJECT_ID" "$UNITY_PLAY_TOKEN"
+
