@@ -41,8 +41,8 @@ namespace Tests.EditMode
         [Test]
         public void Rest_Increases_Energy_Decreases_Popularity()
         {
-            _gameManager.Instance.Stats.Energy.CurrentValue = _gameManager.Instance.Stats.Energy.MinValue;
-            _gameManager.Instance.Stats.Popularity.CurrentValue = 50;
+            _gameManager.Instance.Stats.Energy.CurrentValue = _gameManager.Instance.Stats.Energy.MaxValue / 2;
+            _gameManager.Instance.Stats.Popularity.CurrentValue = _gameManager.Instance.Stats.Popularity.MaxValue / 2;
 
             int startEnergy = _gameManager.Instance.Stats.Energy.CurrentValue;
             int startPopularity = _gameManager.Instance.Stats.Popularity.CurrentValue;

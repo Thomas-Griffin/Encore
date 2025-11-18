@@ -66,6 +66,7 @@ namespace Encore.Model.Stats
             {
                 CurrentValue = MaxValue;
             }
+
             CurrentValue = ClampedValue(CurrentValue + amount);
         }
 
@@ -121,22 +122,12 @@ namespace Encore.Model.Stats
 
         public bool IsAtMaximum()
         {
-            return Mathf.Approximately(DisplayValue, MaxValue);
+            return Mathf.Approximately(DisplayValue, MaxValue) || Mathf.Approximately(CurrentValue, MaxValue);
         }
 
         public bool IsAtMinimum()
         {
-            return Mathf.Approximately(DisplayValue, MinValue);
-        }
-
-        public bool HasExceededMaximum()
-        {
-            return CurrentValue > MaxValue;
-        }
-
-        public bool HasExceededMinimum()
-        {
-            return CurrentValue < MinValue;
+            return Mathf.Approximately(DisplayValue, MinValue) || Mathf.Approximately(CurrentValue, MinValue);
         }
     }
 }
