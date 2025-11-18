@@ -2,6 +2,11 @@ name: Unity Build
 
 on: [ push, pull_request ]
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  
 jobs:
   build:
     name: Build and Test Unity Project
