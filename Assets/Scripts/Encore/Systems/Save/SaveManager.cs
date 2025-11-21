@@ -8,7 +8,6 @@ namespace Encore.Systems.Save
 {
     public class SaveManager
     {
-        private string CurrentSaveFileName { get; set; }
         private const string SaveFileExtension = ".jsonl";
         private const string SaveFolderName = "Saves";
         private readonly string _saveDirectory = Path.Combine(Application.persistentDataPath, SaveFolderName);
@@ -17,26 +16,6 @@ namespace Encore.Systems.Save
         {
             if (Directory.Exists(_saveDirectory)) return;
             Directory.CreateDirectory(_saveDirectory);
-        }
-
-        public void LoadMostRecentSave()
-        {
-            SaveData mostRecentSave = GetMostRecentSave();
-            if (mostRecentSave != null)
-            {
-                if (GetAllSaves().Count == 1)
-                {
-                    CurrentSaveFileName = mostRecentSave.saveName + SaveFileExtension;
-                }
-                else if (GetAllSaves().Count > 1)
-                {
-                    CurrentSaveFileName = GetMostRecentSave().saveName;
-                }
-            }
-            else
-            {
-                CurrentSaveFileName = NewSaveFile().saveName;
-            }
         }
 
         public bool SaveFileExists(string saveFileName)
@@ -66,7 +45,7 @@ namespace Encore.Systems.Save
             return LoadFromFile(newSaveFileName);
         }
 
-        public List<SaveData> GetAllSaves()
+        private List<SaveData> GetAllSaves()
         {
             string[] files = Directory.GetFiles(_saveDirectory, "*" + SaveFileExtension);
             return (from file in files
@@ -81,24 +60,6 @@ namespace Encore.Systems.Save
             if (string.IsNullOrWhiteSpace(firstLine)) return -1;
             SaveData saveData = JsonUtility.FromJson<SaveData>(firstLine);
             return saveData?.saveSlot ?? -1;
-        }
-
-        private SaveData GetMostRecentSave()
-        {
-            List<SaveData> saves = GetAllSaves();
-            // Sort by timestamp (parse ISO string) falling back to file creation time if parse fails
-            saves.Sort((a, b) =>
-            {
-                if (DateTime.TryParse(a.saveTimeStamp, out DateTime aDateTime) &&
-                    DateTime.TryParse(b.saveTimeStamp, out DateTime bDateTime))
-                {
-                    return bDateTime.CompareTo(aDateTime);
-                }
-
-                return 0;
-            });
-
-            return saves.Count > 0 ? saves[0] : null;
         }
 
         public void SaveToFile(SaveData saveData, bool overwrite = false)

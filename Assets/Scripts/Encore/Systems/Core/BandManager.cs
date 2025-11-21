@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Encore.Model.Band;
 using Encore.Model.BandMember;
+using Encore.Model.MusicalInstrument;
 using Encore.Systems.Personality;
 
 namespace Encore.Systems.Core
@@ -12,7 +13,7 @@ namespace Encore.Systems.Core
             PlayerBands = playerBands;
         }
 
-        public List<Band> PlayerBands { get; set; }
+        private List<Band> PlayerBands { get; set; }
 
         public void AddNewBand(
             string name
@@ -40,7 +41,7 @@ namespace Encore.Systems.Core
             BandMemberRoles memberRole,
             BandMemberMoraleLevels morale,
             BandMemberLoyaltyLevels loyalty,
-            List<BandMemberMusicalInstrument> ownedInstruments,
+            Dictionary<BandMemberSkillLevel, List<MusicalInstrument>> ownedInstruments,
             List<PersonalityTraits> personalityTraits
         )
         {

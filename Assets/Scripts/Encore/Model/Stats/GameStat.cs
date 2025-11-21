@@ -31,8 +31,8 @@ namespace Encore.Model.Stats
         // bounding numbers for stat increases/decreases after bonuses are considered
         public readonly int MinimumIncrease;
         public readonly int MaximumIncrease;
-        public readonly int MinimumDecrease;
-        public readonly int MaximumDecrease;
+        private readonly int _minimumDecrease;
+        private readonly int _maximumDecrease;
 
         public GameStat(GameStats stat, Color colour, int initialValue = 0, int minValue = 0, int maxValue = 100,
             int maximumIncrease = 20, int maximumDecrease = 20, int minimumIncrease = 1, int minimumDecrease = 1)
@@ -49,8 +49,8 @@ namespace Encore.Model.Stats
             _useRandomStatChanges = false;
             MinimumIncrease = minimumIncrease;
             MaximumIncrease = maximumIncrease;
-            MinimumDecrease = minimumDecrease;
-            MaximumDecrease = maximumDecrease;
+            _minimumDecrease = minimumDecrease;
+            _maximumDecrease = maximumDecrease;
         }
 
         public void Increase()
@@ -113,11 +113,11 @@ namespace Encore.Model.Stats
             // If random stat changes are enabled, return a random value within the defined range
             if (_useRandomStatChanges)
             {
-                return Random.Range(MinimumDecrease, MaximumDecrease + 1); // +1 because upper bound is exclusive
+                return Random.Range(_minimumDecrease, _maximumDecrease + 1); // +1 because upper bound is exclusive
             }
 
             // Otherwise, return fixed decrease amount based on bonus status
-            return _bonusActive ? MaximumDecrease : MinimumDecrease;
+            return _bonusActive ? _maximumDecrease : _minimumDecrease;
         }
 
         public bool IsAtMaximum()

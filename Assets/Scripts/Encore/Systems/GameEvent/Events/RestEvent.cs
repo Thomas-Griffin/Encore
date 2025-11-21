@@ -15,8 +15,8 @@ namespace Encore.Systems.GameEvent.Events
         {
             Deltas.energyDelta = CalculateEnergyDelta(state);
             Deltas.skillDelta = CalculateSkillDelta(state);
-            Deltas.popularityDelta = CalculatePopularityDelta(state);
-            Deltas.fameDelta = CalculateFameDelta(state);
+            Deltas.popularityDelta = CalculatePopularityDelta();
+            Deltas.fameDelta = CalculateFameDelta();
 
             if (!RequirementsAreMet(state)) return this;
             state.Stats.ApplyDeltas(Deltas);
@@ -51,12 +51,12 @@ namespace Encore.Systems.GameEvent.Events
             return 0;
         }
 
-        private int CalculatePopularityDelta(GameInstance state)
+        private int CalculatePopularityDelta()
         {
             return -1 * ConsecutiveEventRepetitions;
         }
 
-        private int CalculateFameDelta(GameInstance state)
+        private int CalculateFameDelta()
         {
             return 0;
         }

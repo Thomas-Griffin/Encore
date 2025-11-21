@@ -14,12 +14,12 @@ namespace Encore.UI.Screens
         {
             base.OnInitialise(game);
             screenName = UIScreenNames.WinScreen;
-            gameManager = game ?? gameManager;
+            GameManager = game ?? GameManager;
         }
 
         private void OnGUI()
         {
-            if (!gameManager) return;
+            if (!GameManager) return;
             if (!IsVisible()) return;
 
             _titleStyle ??= new GUIStyle(GUI.skin.label)
@@ -71,8 +71,8 @@ namespace Encore.UI.Screens
             GUILayout.Space(12);
             if (GUILayout.Button("Restart", _buttonStyle, GUILayout.Width(180)))
             {
-                DifficultyLevel difficulty = gameManager?.Instance?.Difficulty ?? DifficultyLevel.Easy;
-                gameManager?.StartGame(difficulty);
+                DifficultyLevel difficulty = GameManager?.Instance?.Difficulty ?? DifficultyLevel.Easy;
+                GameManager?.StartGame(difficulty);
                 UIScreenManager.Instance.ShowScreen(UIScreenNames.StatsScreen);
             }
 
@@ -91,7 +91,7 @@ namespace Encore.UI.Screens
 
         private void DisplayWinReasons()
         {
-            foreach (WinReasons winReason in gameManager.Instance.LoseReasons)
+            foreach (WinReasons winReason in GameManager.Instance.LoseReasons)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label($"{WinReasonExtensions.ToDescription(winReason)}");

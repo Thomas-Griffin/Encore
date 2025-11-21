@@ -8,16 +8,16 @@ namespace Encore.UI.Screens
         [Tooltip("Unique name for this screen (used by UIScreenManager).")]
         public UIScreenNames screenName = UIScreenNames.Unnamed;
 
-        protected GameManager gameManager;
+        protected GameManager GameManager;
 
-        protected Color BackgroundColor = new(0f, 0f, 0f, 1f);
+        private readonly Color _backgroundColor = new(0f, 0f, 0f, 1f);
         protected Texture2D BackgroundTexture;
 
         private bool _visible;
 
         private void Initialise(GameManager manager)
         {
-            gameManager = manager ?? gameManager;
+            GameManager = manager ?? GameManager;
         }
 
         protected virtual void Awake()
@@ -61,7 +61,7 @@ namespace Encore.UI.Screens
         {
             if (!BackgroundTexture)
             {
-                BackgroundTexture = CreateTexture(BackgroundColor);
+                BackgroundTexture = CreateTexture(_backgroundColor);
             }
 
 

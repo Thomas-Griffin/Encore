@@ -7,7 +7,7 @@ namespace Encore.Systems.Personality
 {
     public static class PersonalityAggregator
     {
-        public static PersonalityDeltas ModifiersForTrait(PersonalityTraits trait)
+        private static PersonalityDeltas ModifiersForTrait(PersonalityTraits trait)
         {
             return PersonalityTraitBonusMap.For(trait);
         }

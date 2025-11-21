@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Encore.Model.Band;
 using Encore.Model.BandMember;
+using Encore.Model.MusicalInstrument;
 using Encore.Systems.Personality;
 using NUnit.Framework;
 using UnityEngine;
@@ -42,7 +43,7 @@ namespace Tests.EditMode
                 MemberRole: BandMemberRoles.LeadGuitarist,
                 Morale: BandMemberMoraleLevels.Medium,
                 Loyalty: BandMemberLoyaltyLevels.Medium,
-                OwnedInstruments: new List<BandMemberMusicalInstrument>(),
+                OwnedInstruments: new Dictionary<BandMemberSkillLevel, List<MusicalInstrument>>(),
                 PersonalityTraits: traits
             );
 
@@ -120,7 +121,7 @@ namespace Tests.EditMode
                 MemberRole: BandMemberRoles.Drummer,
                 Morale: BandMemberMoraleLevels.Medium,
                 Loyalty: BandMemberLoyaltyLevels.Medium,
-                OwnedInstruments: new List<BandMemberMusicalInstrument>(),
+                OwnedInstruments: new Dictionary<BandMemberSkillLevel, List<MusicalInstrument>>(),
                 PersonalityTraits: new List<PersonalityTraits>()
             );
             BandMember secondBandMember = new(
@@ -130,7 +131,7 @@ namespace Tests.EditMode
                 MemberRole: BandMemberRoles.LeadGuitarist,
                 Morale: BandMemberMoraleLevels.Medium,
                 Loyalty: BandMemberLoyaltyLevels.Medium,
-                OwnedInstruments: new List<BandMemberMusicalInstrument>(),
+                OwnedInstruments: new Dictionary<BandMemberSkillLevel, List<MusicalInstrument>>(),
                 PersonalityTraits: new List<PersonalityTraits>()
             );
 
@@ -160,7 +161,7 @@ namespace Tests.EditMode
                 MemberRole: BandMemberRoles.Bassist,
                 Morale: BandMemberMoraleLevels.Medium,
                 Loyalty: BandMemberLoyaltyLevels.Medium,
-                OwnedInstruments: new List<BandMemberMusicalInstrument>(),
+                OwnedInstruments: new Dictionary<BandMemberSkillLevel, List<MusicalInstrument>>(),
                 PersonalityTraits: new List<PersonalityTraits> { PersonalityTraits.Resilient }
             );
 

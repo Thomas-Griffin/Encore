@@ -9,14 +9,14 @@ namespace Encore.Model.BandMember
         BandMemberRoles MemberRole,
         BandMemberMoraleLevels Morale,
         BandMemberLoyaltyLevels Loyalty,
-        List<BandMemberMusicalInstrument> OwnedInstruments,
+        Dictionary<BandMemberSkillLevel, List<MusicalInstrument.MusicalInstrument>> OwnedInstruments,
         List<PersonalityTraits> PersonalityTraits)
     {
         public string Name { get; set; } = Name;
         public string Surname { get; set; } = Surname;
         public string Nickname { get; set; } = Nickname;
-        public List<BandMemberMusicalInstrument> OwnedInstruments { get; set; } = OwnedInstruments;
-        public BandMemberMusicalInstrument CurrentInstrument { get; set; }
+        public Dictionary<BandMemberSkillLevel, List<MusicalInstrument.MusicalInstrument>> OwnedInstruments { get; set; } = OwnedInstruments;
+        public MusicalInstrument.MusicalInstrument CurrentInstrument { get; set; }
         public BandMemberRoles MemberRole { get; set; } = MemberRole;
         public BandMemberMoraleLevels Morale { get; set; } = Morale;
         public BandMemberLoyaltyLevels Loyalty { get; set; } = Loyalty;

@@ -6,7 +6,7 @@ namespace Encore.Model.Game
         EnergyDepleted
     }
 
-    public class LoseReasonExtensions
+    public static class LoseReasonExtensions
     {
         public static string ToDescription(LoseReasons reason)
         {

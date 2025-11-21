@@ -18,7 +18,7 @@ namespace Encore.UI.Screens
 
         private void OnGUI()
         {
-            if (!gameManager) return;
+            if (!GameManager) return;
             if (!IsVisible()) return;
 
             if (_titleStyle == null || _buttonStyle == null)
@@ -107,12 +107,12 @@ namespace Encore.UI.Screens
 
         private void StartGame(DifficultyLevel level)
         {
-            if (!gameManager)
+            if (!GameManager)
             {
-                gameManager = FindAnyObjectByType<GameManager>();
+                GameManager = FindAnyObjectByType<GameManager>();
             }
 
-            gameManager?.StartGame(level);
+            GameManager?.StartGame(level);
         }
     }
 }

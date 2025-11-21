@@ -10,7 +10,7 @@ namespace Encore.Model.Stats
         Fame
     }
 
-    public class GameStatExtensions
+    public static class GameStatExtensions
     {
         public static string ToString(GameStats stat)
         {

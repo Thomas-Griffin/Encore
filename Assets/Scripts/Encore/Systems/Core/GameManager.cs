@@ -25,7 +25,6 @@ namespace Encore.Systems.Core
 
                 return _instance;
             }
-            private set => _instance = value;
         }
 
         private bool _initialised;

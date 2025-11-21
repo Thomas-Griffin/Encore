@@ -12,9 +12,6 @@ namespace Encore.Systems.Core
     {
         private int FameTarget { get; set; }
 
-        // Skill requirement to gig
-        public int SkillBarrierForGig { get; private set; }
-
         private GameStat _energy;
         private GameStat _skill;
         private GameStat _popularity;
@@ -29,7 +26,6 @@ namespace Encore.Systems.Core
                 EnsureInitialised();
                 return _energy;
             }
-            private set => _energy = value;
         }
 
         public GameStat Skill
@@ -39,7 +35,6 @@ namespace Encore.Systems.Core
                 EnsureInitialised();
                 return _skill;
             }
-            private set => _skill = value;
         }
 
         public GameStat Popularity
@@ -49,7 +44,6 @@ namespace Encore.Systems.Core
                 EnsureInitialised();
                 return _popularity;
             }
-            private set => _popularity = value;
         }
 
         public GameStat Fame
@@ -59,10 +53,7 @@ namespace Encore.Systems.Core
                 EnsureInitialised();
                 return _fame;
             }
-            private set => _fame = value;
         }
-
-        public DifficultyLevel Difficulty { get; private set; }
 
         private bool _isInitialized;
 
@@ -99,7 +90,6 @@ namespace Encore.Systems.Core
 
         private void InitialiseDefaults(DifficultyLevel difficulty)
         {
-            Difficulty = difficulty;
             FameTarget = difficulty switch
             {
                 DifficultyLevel.Easy => 100,
@@ -266,7 +256,7 @@ namespace Encore.Systems.Core
                 {
                     stat.Reset();
                 }
-                catch (Exception ignored)
+                catch (Exception)
                 {
                     // ignored
                 }

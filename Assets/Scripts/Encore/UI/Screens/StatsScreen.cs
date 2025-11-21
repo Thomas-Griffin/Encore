@@ -13,17 +13,17 @@ namespace Encore.UI.Screens
         {
             base.OnInitialise(game);
             screenName = UIScreenNames.StatsScreen;
-            gameManager = game ?? gameManager;
+            GameManager = game ?? GameManager;
 
             _textureCache ??= new TextureCache();
 
-            if (_presenter == null && gameManager?.Instance!?.Stats)
+            if (_presenter == null && GameManager?.Instance!?.Stats)
             {
-                _presenter ??= new StatPresenter(gameManager?.Instance.Stats);
+                _presenter ??= new StatPresenter(GameManager?.Instance.Stats);
             }
 
-            if (!gameManager?.Instance!?.Stats) return;
-            foreach (GameStat stat in gameManager!.Instance?.Stats.GetStats()!)
+            if (!GameManager?.Instance!?.Stats) return;
+            foreach (GameStat stat in GameManager!.Instance?.Stats.GetStats()!)
             {
                 if (stat == null) continue;
                 if (!_statNameContent.ContainsKey(stat.Stat))
@@ -60,7 +60,7 @@ namespace Encore.UI.Screens
         {
             if (!IsVisible()) return;
 
-            if (!gameManager?.Instance!?.Stats) return;
+            if (!GameManager?.Instance!?.Stats) return;
 
             if (_labelStyle == null || _valueStyle == null)
             {
@@ -104,8 +104,8 @@ namespace Encore.UI.Screens
 
         private void DrawDayCounter()
         {
-            int currentDay = gameManager?.Instance?.Days?.CurrentDay ?? 0;
-            int totalDays = gameManager?.Instance?.Days?.TotalDays ?? 0;
+            int currentDay = GameManager?.Instance?.Days?.CurrentDay ?? 0;
+            int totalDays = GameManager?.Instance?.Days?.TotalDays ?? 0;
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.Label($"DAY: {currentDay} / {totalDays}", _labelStyle);
@@ -115,7 +115,7 @@ namespace Encore.UI.Screens
 
         private void DrawStats()
         {
-            GameStat[] stats = gameManager?.Instance?.Stats?.GetStats();
+            GameStat[] stats = GameManager?.Instance?.Stats?.GetStats();
             if (stats == null) return;
 
             foreach (GameStat stat in stats)
@@ -195,7 +195,7 @@ namespace Encore.UI.Screens
             GUI.backgroundColor = Color.green;
             if (GUILayout.Button(nameof(GameActions.Rest), GUILayout.Height(36), GUILayout.ExpandWidth(true)))
             {
-                gameManager.DoAction(new SimpleGameAction(GameActions.Rest));
+                GameManager.DoAction(new SimpleGameAction(GameActions.Rest));
             }
 
             GUI.backgroundColor = prevBg;
@@ -206,7 +206,7 @@ namespace Encore.UI.Screens
             GUI.backgroundColor = new Color(1f, 0.6f, 0f);
             if (GUILayout.Button(nameof(GameActions.Practice), GUILayout.Height(36), GUILayout.ExpandWidth(true)))
             {
-                gameManager.DoAction(new SimpleGameAction(GameActions.Practice));
+                GameManager.DoAction(new SimpleGameAction(GameActions.Practice));
             }
 
             GUI.backgroundColor = prevBg;
@@ -217,7 +217,7 @@ namespace Encore.UI.Screens
             GUI.backgroundColor = Color.red;
             if (GUILayout.Button(nameof(GameActions.Gig), GUILayout.Height(36), GUILayout.ExpandWidth(true)))
             {
-                gameManager.DoAction(new SimpleGameAction(GameActions.Gig));
+                GameManager.DoAction(new SimpleGameAction(GameActions.Gig));
             }
 
             GUI.backgroundColor = prevBg;

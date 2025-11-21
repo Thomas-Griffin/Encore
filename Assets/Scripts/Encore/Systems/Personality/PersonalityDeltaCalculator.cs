@@ -2,11 +2,11 @@ namespace Encore.Systems.Personality
 {
     public static class PersonalityDeltaCalculator
     {
-        public static float PerformanceGain { get; set; } = 0.03f;
-        public static float CreativityGain { get; set; } = 0.05f;
-        public static float MoraleGain { get; set; } = 0.04f;
-        public static float ConflictChanceGain { get; set; } = 0.03f;
-        public static float LoyaltyGain { get; set; } = 0.02f;
+        private static float PerformanceGain { get; set; } = 0.03f;
+        private static float CreativityGain { get; set; } = 0.05f;
+        private static float MoraleGain { get; set; } = 0.04f;
+        private static float ConflictChanceGain { get; set; } = 0.03f;
+        private static float LoyaltyGain { get; set; } = 0.02f;
 
         public static float ToPerformanceDelta(PersonalityEffectLevels effectLevel) => (int)effectLevel * PerformanceGain;
         public static float ToCreativityDelta(PersonalityEffectLevels effectLevel) => (int)effectLevel * CreativityGain;
