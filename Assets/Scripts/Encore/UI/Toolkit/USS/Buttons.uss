@@ -1,0 +1,63 @@
+﻿Button {
+    min-width: 120px;
+    max-width: 240px;
+    height: 56px;
+    color: #ffffff;
+    border-radius: 12px;
+    margin: 0 8px;
+    font-size: 18px;
+    padding: 0 16px;
+    background-color: #1f1f1f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-color: #2f2f2f;
+    margin-bottom: 10px;
+}
+
+.panel-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.panel-buttons > Button {
+    flex: 1 1 auto;
+    margin: 6px;
+}
+
+Button:hover {
+    scale: 1.02;
+    transition-duration: 0.15s;
+}
+
+Button:active {
+    background-color: #0d0d0d;
+}
+
+.easy {
+    background-color: #2ecc71;
+}
+
+.medium {
+    background-color: #f1c40f;
+}
+
+.hard {
+    background-color: #e74c3c;
+}
+
+.cancel-button {
+    min-width: 120px;
+    max-width: 240px;
+    height: 56px;
+    background-color: #730000;
+    color: #ffffff;
+    border-radius: 12px;
+    border-width: 0;
+    font-size: 18px;
+    margin: 0 8px;
+}

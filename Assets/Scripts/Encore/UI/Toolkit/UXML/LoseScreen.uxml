@@ -1,0 +1,15 @@
+<UXML xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="../USS/Root.uss" />
+    <Style src="../USS/Layout.uss" />
+    <Style src="../USS/Buttons.uss" />
+    <Style src="../USS/Panels.uss" />
+    <VisualElement name="root">
+        <VisualElement class="center-container panel">
+            <Label name="title" text="You Lose..." class="panel-title" />
+            <VisualElement name="loseReasonsContainer" class="lose-reasons" />
+            <VisualElement class="panel-buttons">
+                <Button text="Main Menu" name="mainMenuButton" />
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

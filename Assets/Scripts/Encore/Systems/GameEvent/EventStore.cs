@@ -1,67 +1,44 @@
 using System.Collections.Generic;
-using System.IO;
-using Encore.Model.Game;
+using System.Linq;
+using Encore.Abstractions.Interfaces;
+using Encore.Model.Player;
 using Encore.Systems.GameEvent.Events;
 using Encore.Systems.Save;
-using UnityEngine;
 
 namespace Encore.Systems.GameEvent
 {
-    public class EventStore
+    public sealed class EventStore : IEventStore
     {
-        public List<GameEventBase> Events { get; }
-        public string SaveFileName { get; }
-        public string SaveFileFullPath { get; }
+        private readonly List<GameEventBase> _events = new();
 
-        public EventStore(string saveName)
-        {
-            SaveFileName = saveName;
-            string saveDir = Path.Combine(Application.persistentDataPath, "Saves");
-            if (!Directory.Exists(saveDir)) Directory.CreateDirectory(saveDir);
-            SaveFileFullPath = Path.Combine(saveDir, saveName + ".jsonl");
-            Events = new List<GameEventBase>();
-            foreach (GameEventBase gameEvent in LoadAll())
-            {
-                Events.Add(gameEvent);
-            }
-        }
+        public int Count => _events.Count;
+        public IEnumerable<GameEventBase> Events => _events;
 
         public void Append(GameEventBase gameEvent)
         {
-            Events.Add(gameEvent);
-            EventSnapshot snap = EventSnapshot.FromGameEvent(gameEvent);
-            File.AppendAllText(SaveFileFullPath, JsonUtility.ToJson(snap) + "\n");
+            _events.Add(gameEvent);
         }
 
-        private IEnumerable<GameEventBase> LoadAll()
+        public GameEventBase GetLastEvent() => _events.Count > 0 ? _events[^1] : null;
+
+        public GameEventBase GetLastActionEvent()
         {
-            if (!File.Exists(SaveFileFullPath)) yield break;
-            foreach (string line in File.ReadLines(SaveFileFullPath))
+            for (int i = _events.Count - 1; i >= 0; i--)
             {
-                if (string.IsNullOrWhiteSpace(line)) continue;
-                EventSnapshot snap = JsonUtility.FromJson<EventSnapshot>(line);
-                if (snap == null || string.IsNullOrWhiteSpace(snap.eventType)) continue;
-                GameEventBase ev = EventSnapshot.ToGameEvent(snap);
-                if (ev != null) yield return ev;
-            }
-        }
-
-
-        public List<GameEventBase> GetAllEvents() => Events;
-
-        public GameEventBase GetLastEvent() => Events.Count > 0 ? Events[^1] : null;
-
-        public GameAction GetLastAction()
-        {
-            for (int i = Events.Count - 1; i >= 0; i--)
-            {
-                if (Events[i].Action != null)
-                {
-                    return Events[i].Action;
-                }
+                GameEventBase gameEventBase = _events[i];
+                if (gameEventBase?.Action != null) return gameEventBase;
             }
 
             return null;
+        }
+
+        public PlayerAction GetLastAction() => GetLastActionEvent()?.Action;
+
+        public void Clear() => _events.Clear();
+
+        public IEnumerable<EventSnapshot> EventsAsSnapshots()
+        {
+            return _events.Select(EventSnapshot.FromGameEvent);
         }
     }
 }

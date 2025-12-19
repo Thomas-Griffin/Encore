@@ -1,5 +1,8 @@
+using Encore.Abstractions.Interfaces;
 using Encore.Model.Game;
+using Encore.Systems.Core;
 using UnityEngine;
+using Encore.Systems.GameEvent;
 
 namespace Encore.Systems.GameEvent.Events
 {
@@ -11,41 +14,57 @@ namespace Encore.Systems.GameEvent.Events
 
         public override string Description => "You took some time to rest and recover your energy.";
 
-        public override GameEventBase Apply(GameInstance state)
+        public override GameEventBase Apply(GameSession state,
+            IStatService stats,
+            IDayService dayService)
         {
-            Deltas.energyDelta = CalculateEnergyDelta(state);
-            Deltas.skillDelta = CalculateSkillDelta(state);
+            Deltas.energyDelta = CalculateEnergyDelta(state, stats);
+            Deltas.skillDelta = CalculateSkillDelta(state, stats);
             Deltas.popularityDelta = CalculatePopularityDelta();
             Deltas.fameDelta = CalculateFameDelta();
 
-            if (!RequirementsAreMet(state)) return this;
-            state.Stats.ApplyDeltas(Deltas);
+            if (!RequirementsAreMet(state, stats)) return this;
+            stats.ApplyDeltas(Deltas);
             return this;
         }
 
-        private int CalculateEnergyDelta(GameInstance state)
+        public override StatDeltas PreviewDeltas(GameSession state, IStatService stats, IDayService dayService)
         {
-            if (state == null || !state.Stats) return 0;
+            StatDeltas deltas = new()
+            {
+                energyDelta = CalculateEnergyDelta(state, stats),
+                skillDelta = CalculateSkillDelta(state, stats),
+                popularityDelta = CalculatePopularityDelta(),
+                fameDelta = CalculateFameDelta()
+            };
+            return deltas;
+        }
+
+        private int CalculateEnergyDelta(GameSession state,
+            IStatService stats)
+        {
+            if (state == null || stats == null) return 0;
 
             const float baseEnergy = 15f;
             const float growthFactor = 1.25f; // each consecutive rest increases gain by 25%
             int repetitions = Mathf.Max(1, ConsecutiveEventRepetitions);
             int calculatedEnergy = Mathf.RoundToInt(baseEnergy * Mathf.Pow(growthFactor, repetitions - 1));
 
-            if (state.Stats.Energy == null) return calculatedEnergy;
-            int remaining = state.Stats.Energy.MaxValue - state.Stats.Energy.CurrentValue;
+            if (stats.Energy == null) return calculatedEnergy;
+            int remaining = stats.Energy.MaxValue - stats.Energy.CurrentValue;
             calculatedEnergy = Mathf.Clamp(calculatedEnergy, 0, Mathf.Max(0, remaining));
 
             return calculatedEnergy;
         }
 
-        private int CalculateSkillDelta(GameInstance state)
+        private int CalculateSkillDelta(GameSession state,
+            IStatService stats)
         {
-            if (state == null || !state.Stats || state.Stats.Skill == null) return 0;
+            if (state == null || stats?.Skill == null) return 0;
 
             if (ConsecutiveEventRepetitions >= 2)
             {
-                return -1 * ConsecutiveEventRepetitions + state.Stats.Skill.CurrentValue / 10;
+                return -1 * ConsecutiveEventRepetitions + stats.Skill.CurrentValue / 10;
             }
 
             return 0;
@@ -56,7 +75,7 @@ namespace Encore.Systems.GameEvent.Events
             return -1 * ConsecutiveEventRepetitions;
         }
 
-        private int CalculateFameDelta()
+        private static int CalculateFameDelta()
         {
             return 0;
         }

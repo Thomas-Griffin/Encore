@@ -1,6 +1,6 @@
 using System;
 using System.Reflection;
-using Encore.Model.Game;
+using Encore.Model.Player;
 using Encore.Systems.GameEvent;
 using Encore.Systems.GameEvent.Events;
 
@@ -45,9 +45,9 @@ namespace Encore.Systems.Save
 
             gameEvent.Deltas = snapshot.deltas ?? new StatDeltas();
             if (snapshot.action != null && !string.IsNullOrWhiteSpace(snapshot.action.actionType) &&
-                Enum.TryParse(snapshot.action.actionType, out GameActions actionEnum))
+                Enum.TryParse(snapshot.action.actionType, out PlayerActions playerActions))
             {
-                gameEvent.Action = new SimpleGameAction(actionEnum);
+                gameEvent.Action = GameActionSnapshot.ToGameAction(snapshot.action);
             }
 
             gameEvent.ConsecutiveEventRepetitions = snapshot.consecutiveRepetitions > 0
@@ -67,9 +67,7 @@ namespace Encore.Systems.Save
                 description = gameEvent.Description,
                 timestamp = gameEvent.Timestamp.ToString("o"),
                 deltas = gameEvent.Deltas ?? new StatDeltas(),
-                action = gameEvent.Action == null
-                    ? null
-                    : new GameActionSnapshot { actionType = gameEvent.Action.Type.ToString() },
+                action = GameActionSnapshot.FromGameAction(gameEvent.Action),
                 consecutiveRepetitions = gameEvent.ConsecutiveEventRepetitions
             };
         }
