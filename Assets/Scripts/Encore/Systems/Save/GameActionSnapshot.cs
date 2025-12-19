@@ -1,5 +1,6 @@
 using System;
-using Encore.Model.Game;
+using Encore.Model.Player;
+using Encore.Model.Player.Actions;
 
 namespace Encore.Systems.Save
 {
@@ -9,20 +10,26 @@ namespace Encore.Systems.Save
         public string actionType;
 
 
-        public static GameActionSnapshot FromGameAction(GameAction action)
+        public static GameActionSnapshot FromGameAction(PlayerAction action)
         {
             if (action == null) return null;
             return new GameActionSnapshot
             {
-                actionType = action.Type.ToString()
+                actionType = action.GetType().Name,
             };
         }
 
 
-        public static GameAction ToGameAction(GameActionSnapshot snapshot)
+        public static PlayerAction ToGameAction(GameActionSnapshot snapshot)
         {
             if (snapshot == null) return null;
-            return Enum.TryParse(snapshot.actionType, out GameActions actionType) ? new SimpleGameAction(actionType) : null;
+            return snapshot.actionType switch
+            {
+                "Practice" => new Practice(),
+                "Rest" => new Rest(),
+                "Gig" => new Gig(),
+                _ => null
+            };
         }
     }
 }

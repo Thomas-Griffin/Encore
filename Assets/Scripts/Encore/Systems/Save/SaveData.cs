@@ -1,80 +1,71 @@
 using System;
+using System.Collections.Generic;
+using Encore.Abstractions.Interfaces;
 using Encore.Model.Game;
+using Encore.Model.Stats;
+using Encore.Systems.Core;
 
 namespace Encore.Systems.Save
 {
     [Serializable]
-    public class SaveData
+    public sealed class SaveData
     {
-        public string saveName;
-        public int saveSlot;
-        public string saveTimeStamp;
-        public GameInstanceSnapshot gameInstanceSnapshot;
+        public string saveFileName;
+        public string playState;
+        public Difficulty difficulty;
+        public int daysCurrent;
+        public int daysTotal;
 
-        public SaveData()
-        {
-            saveName = string.Empty;
-            saveSlot = -1;
-            saveTimeStamp = DateTime.UtcNow.ToString("o");
-            gameInstanceSnapshot = null;
-        }
+        public List<StatSnapshot> stats = new();
+        public List<EventSnapshot> events = new();
 
-        public SaveData(
-            string saveName,
-            int saveSlot,
-            GameInstance gameInstance,
-            DateTime saveTimeStamp
-        )
+        public static SaveData FromGame(
+            GameSession session,
+            IStatService statService,
+            IDayService dayService,
+            IEventStore eventStore)
         {
-            this.saveName = saveName;
-            this.saveSlot = saveSlot;
-            this.saveTimeStamp = saveTimeStamp.ToString("o");
-            gameInstanceSnapshot = gameInstance == null ? null : GameInstanceSnapshot.FromGameInstance(gameInstance);
-        }
-
-        public GameInstance ToGameInstance()
-        {
-            return gameInstanceSnapshot?.ToGameInstance();
-        }
-
-        public static SaveData FromGameInstance(GameInstance instance, string saveName = null, int slot = 0)
-        {
-            SaveData data = new()
+            SaveData saveData = new()
             {
-                saveName = saveName ?? instance?.SaveFileName ?? "encore_autosave",
-                saveSlot = slot,
-                saveTimeStamp = DateTime.UtcNow.ToString("o"),
-                gameInstanceSnapshot = instance == null ? null : GameInstanceSnapshot.FromGameInstance(instance)
+                playState = PlayStateExtensions.ToString(session?.PlayState ?? PlayState.Playing),
+                difficulty = session?.Difficulty ?? Difficulty.Easy,
+                daysCurrent = dayService.CurrentDay,
+                daysTotal = dayService.TotalDays
             };
-            return data;
+
+            if (statService != null)
+            {
+                foreach (GameStat gameStat in statService.GetStats())
+                {
+                    if (gameStat == null) continue;
+                    saveData.stats.Add(new StatSnapshot
+                    {
+                        statName = gameStat.Stat.ToString(),
+                        currentValue = gameStat.CurrentValue,
+                        initialValue = gameStat.InitialValue,
+                        minValue = gameStat.MinValue,
+                        maxValue = gameStat.MaxValue
+                    });
+                }
+            }
+
+            if (eventStore != null)
+            {
+                saveData.events.AddRange(eventStore.EventsAsSnapshots());
+            }
+
+            return saveData;
         }
 
-        public override string ToString()
+        public GameSession ToGameSession()
         {
-            return $"{saveName} (Slot {saveSlot}) - Saved on {saveTimeStamp}";
-        }
-
-        public string ToDetailedString()
-        {
-            GameInstance inst = ToGameInstance();
-            return $"{ToString()}\nGame State: {inst?.State}, Difficulty: {inst?.Difficulty}";
-        }
-
-        public string ToShortString()
-        {
-            return $"{saveName} (Slot {saveSlot})";
-        }
-
-        public void SaveToFile(bool overwrite = false)
-        {
-        }
-
-        public void Load()
-        {
-        }
-
-        public void Delete()
-        {
+            return new GameSession
+            {
+                PlayState = PlayStateExtensions.FromString(playState ?? "Playing"),
+                Difficulty = difficulty,
+                LoseReasons = new List<LoseReasons>(),
+                WinReasons = new List<WinReasons>()
+            };
         }
     }
 }

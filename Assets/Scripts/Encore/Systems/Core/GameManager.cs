@@ -1,107 +1,85 @@
 using System;
 using System.Collections.Generic;
+using Encore.Abstractions.Interfaces;
 using Encore.Model.Game;
+using Encore.Model.Player;
 using Encore.Systems.GameEvent.Events;
 using Encore.Systems.Save;
-using Encore.UI;
-using UnityEngine;
 
 namespace Encore.Systems.Core
 {
-    public class GameManager : MonoBehaviour
+    public sealed class GameManager
     {
-        public SaveManager SaveManager { get; private set; }
+        private readonly GameSession _session;
+        private readonly IEventStore _events;
+        private readonly IStatService _stats;
+        private readonly ISaveService _saveService;
+        private readonly IDayService _dayService;
+        private SavedGame _save;
 
-        private GameInstance _instance;
-
-        public GameInstance Instance
+        public GameManager(
+            GameSession session,
+            IEventStore events,
+            IStatService stats,
+            ISaveService saveService,
+            IDayService dayService)
         {
-            get
-            {
-                if (_instance == null)
-                {
-                    EnsureInitialised();
-                }
-
-                return _instance;
-            }
+            _session = session;
+            _events = events;
+            _stats = stats;
+            _saveService = saveService;
+            _dayService = dayService;
         }
 
-        private bool _initialised;
-
-        public GameManager()
+        public void StartGame(Difficulty difficulty = Difficulty.Easy)
         {
+            _session.PlayState = PlayState.Playing;
+            _session.Difficulty = difficulty;
+
+            _session.LoseReasons ??= new List<LoseReasons>();
+            _session.WinReasons ??= new List<WinReasons>();
+            _session.LoseReasons.Clear();
+            _session.WinReasons.Clear();
+
+            _dayService.Initialise(difficulty);
+            _stats.InitialiseStats(difficulty);
+
+            _events.Clear();
+            _events.Append(new StartGameEvent());
+
+            SaveGame();
         }
 
-        public GameManager(GameInstance instance)
+
+        private void SaveGame()
         {
-            _instance = instance;
+            _save = new SavedGame(
+                _session,
+                _stats,
+                _dayService,
+                _events,
+                DateTime.UtcNow
+            );
+            _saveService.Save(_save, _events.EventsAsSnapshots());
         }
 
-        private void Awake()
+        public void DoAction(PlayerAction action)
         {
-            EnsureInitialised();
-        }
-
-        private void EnsureInitialised()
-        {
-            if (_initialised) return;
-
-            SaveManager ??= new SaveManager();
-            SaveManager.EnsureSaveDirectoryExists();
-
-            _instance ??= new GameInstance();
-
-            if (_instance?.Stats is null)
-            {
-                _instance!.Stats = ScriptableObject.CreateInstance<StatManager>();
-            }
-
-            _instance.Days ??= new DayManager(_instance.Difficulty);
-
-            _initialised = true;
-        }
-
-        public void StartGame(DifficultyLevel difficulty)
-        {
-            EnsureInitialised();
-
-            if (SaveManager.SaveFileExists(_instance?.SaveFileName))
-            {
-                _instance = SaveManager.LoadFromFile(_instance?.SaveFileName).ToGameInstance();
-                return;
-            }
-
-            _instance ??= new GameInstance(DateTime.UtcNow.ToString("F"), difficulty);
-
-            _instance.Difficulty = difficulty;
-            _instance.Stats.InitialiseStats(difficulty);
-            _instance.State = GameState.Playing;
-
-            _instance.Events.Append(new StartGameEvent());
-        }
-
-        public void DoAction(GameAction action)
-        {
-            EnsureInitialised();
-
-            GameEventBase actionAsEvent = action.ToGameEvent();
-
-            RecordAndApplyEvent(actionAsEvent);
-
-            RecordAndApplyEvent(new NextDayEvent());
+            RecordApplyAndAppend(action.ToGameEvent());
+            RecordApplyAndAppend(new NextDayEvent());
 
             CheckForEndGameConditions();
-            PerformAutoSave();
+
+            SaveGame();
         }
 
-        private void RecordAndApplyEvent(GameEventBase gameEvent)
+        private void RecordApplyAndAppend(GameEventBase gameEvent)
         {
             while (true)
             {
-                EnsureInitialised();
+                
+                _events.Append(StampConsecutiveRepetitions(gameEvent).Apply(_session, _stats, _dayService));
 
-                _instance.Events.Append(_instance.ApplyEvent(gameEvent));
                 if (gameEvent.DelegateEvent != null)
                 {
                     gameEvent = gameEvent.DelegateEvent;
@@ -112,68 +90,59 @@ namespace Encore.Systems.Core
             }
         }
 
-        private void PerformAutoSave()
+        private GameEventBase StampConsecutiveRepetitions(GameEventBase gameEvent)
         {
-            EnsureInitialised();
-
-            string saveName = _instance.SaveFileName;
-            if (string.IsNullOrWhiteSpace(saveName))
+            if (gameEvent?.Action == null)
             {
-                saveName = "autosave";
+                if (gameEvent != null) gameEvent.ConsecutiveEventRepetitions = 1;
+                return gameEvent;
             }
 
-            SaveManager.SaveToFile(new SaveData(saveName, 0, _instance, DateTime.UtcNow));
+            GameEventBase lastActionEvent = _events.GetLastActionEvent();
+
+            if (lastActionEvent?.Action != null &&
+                lastActionEvent.Action.GetType() == gameEvent.Action.GetType())
+            {
+                gameEvent.ConsecutiveEventRepetitions = lastActionEvent.ConsecutiveEventRepetitions + 1;
+            }
+            else
+            {
+                gameEvent.ConsecutiveEventRepetitions = 1;
+            }
+
+            return gameEvent;
         }
 
         public void CheckForEndGameConditions()
         {
-            EnsureInitialised();
-            CheckForWinCondition();
-            CheckForLoseCondition();
-
-            // Show UI screens only if the UI manager exists (edit-mode tests may not create UI)
-            UIScreenManager ui = UIScreenManager.Instance;
-            switch (Instance?.State)
-            {
-                case GameState.Win:
-                    ui?.ShowScreen(UIScreenNames.WinScreen);
-                    break;
-                case GameState.Lose:
-                    ui?.ShowScreen(UIScreenNames.LoseScreen);
-                    break;
-                case GameState.Playing:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            CheckForWinConditions();
+            CheckForLoseConditions();
         }
 
-
-        private void CheckForLoseCondition()
+        private void CheckForLoseConditions()
         {
-            EnsureInitialised();
-            _instance.LoseReasons = new List<LoseReasons>();
-            if (_instance.Stats.LoseConditionMet())
+            _session.LoseReasons.Clear();
+
+            if (_stats.LoseConditionMet())
             {
-                _instance.LoseReasons.Add(LoseReasons.EnergyDepleted);
-                _instance.State = GameState.Lose;
+                _session.LoseReasons.Add(LoseReasons.EnergyDepleted);
+                _session.PlayState = PlayState.Lose;
+                return;
             }
-            else if (_instance.Days.CurrentDay == _instance.Days.TotalDays)
-            {
-                if (_instance.Stats.WinConditionMet()) return;
-                _instance.LoseReasons.Add(LoseReasons.RanOutOfTime);
-                _instance.State = GameState.Lose;
-            }
+
+            if (_dayService.CurrentDay != _dayService.TotalDays) return;
+            if (_stats.WinConditionMet()) return;
+            _session.LoseReasons.Add(LoseReasons.RanOutOfTime);
+            _session.PlayState = PlayState.Lose;
         }
 
-        private void CheckForWinCondition()
+        private void CheckForWinConditions()
         {
-            EnsureInitialised();
+            _session.WinReasons.Clear();
 
-            _instance.WinReasons = new List<WinReasons>();
-            if (!_instance.Stats.WinConditionMet()) return;
-            _instance.WinReasons.Add(WinReasons.AchievedFameTarget);
-            _instance.State = GameState.Win;
+            if (!_stats.WinConditionMet()) return;
+            _session.WinReasons.Add(WinReasons.AchievedFameTarget);
+            _session.PlayState = PlayState.Win;
         }
     }
 }

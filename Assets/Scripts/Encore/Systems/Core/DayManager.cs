@@ -1,27 +1,30 @@
+using Encore.Abstractions.Interfaces;
 using Encore.Model.Game;
 
 namespace Encore.Systems.Core
 {
-    public class DayManager
+    public sealed class DayService : IDayService
     {
-        public int CurrentDay { get; private set; } = 1;
+        public int CurrentDay { get; private set; }
         public int TotalDays { get; private set; }
 
-
-        public DayManager(DifficultyLevel difficultyLevel)
+        public void Initialise(Difficulty difficulty)
         {
-            TotalDays = difficultyLevel switch
+            TotalDays = difficulty switch
             {
-                DifficultyLevel.Easy => 50,
-                DifficultyLevel.Medium => 45,
-                DifficultyLevel.Hard => 40,
+                Difficulty.Easy => 50,
+                Difficulty.Medium => 45,
+                Difficulty.Hard => 40,
                 _ => 50
             };
+
+            CurrentDay = 1;
         }
 
         public void Advance()
         {
-            if (CurrentDay < TotalDays) CurrentDay++;
+            if (CurrentDay < TotalDays)
+                CurrentDay++;
         }
 
         public void Reset()

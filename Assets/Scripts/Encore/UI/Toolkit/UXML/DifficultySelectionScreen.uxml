@@ -1,0 +1,17 @@
+<UXML xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="../USS/Root.uss" />
+    <Style src="../USS/Layout.uss" />
+    <Style src="../USS/Buttons.uss" />
+    <Style src="../USS/Panels.uss" />
+    <VisualElement name="root" class="root">
+        <VisualElement class="center-container panel centered-panel">
+            <Label name="title" text="Select Difficulty" class="panel-title" />
+            <VisualElement class="panel-buttons">
+                <Button name="easyButton" text="Easy" class="difficulty-button easy" />
+                <Button name="mediumButton" text="Medium" class="difficulty-button medium" />
+                <Button name="hardButton" text="Hard" class="difficulty-button hard" />
+                <Button name="cancelDifficulty" text="Cancel" class="cancel-button" />
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

@@ -1,42 +1,75 @@
-using Encore.Model.Game;
+using Encore.Abstractions.Interfaces;
+using Encore.Model.Player.Actions;
+using Encore.Systems.Configurations;
 using Encore.Systems.Core;
-using Encore.Systems.GameEvent.Events;
+using Encore.Systems.GameEvent;
 using Encore.Systems.Save;
 using NUnit.Framework;
+using Tests.EditMode.Mocks;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
     public class GameSaveLoadTests
     {
+        private GameManager _game;
+        private GameSession _session;
+        private IEventStore _events;
+        private IStatService _stats;
+        private ISaveService _saveService;
+        private IDayService _dayService;
+        
+        [SetUp]
+        public void Setup()
+        {
+             _session = new GameSession();
+             _events = new EventStore();
+             _stats = new StatsService(ScriptableObject.CreateInstance<StatsConfig>());
+             _saveService = new InMemorySaveService();
+             _dayService = new DayService();
+
+            _game = new GameManager(
+                _session,
+                _events,
+                _stats,
+                _saveService,
+                _dayService
+            );
+
+            _game.StartGame();
+        }
+        
         [Test]
         public void SaveAndLoad_Roundtrip_PreservesStatsAndEvents()
         {
-            GameObject gameObject = new("GameManager");
-            GameManager gameManager = gameObject.AddComponent<GameManager>();
+            _game.DoAction(new Practice());
+            _game.DoAction(new Rest());
+            _game.DoAction(new Gig());
+
+            int eventsBefore = _events.Count;
+            int energyBefore = _stats.Energy.CurrentValue;
+            int skillBefore = _stats.Skill.CurrentValue;
+            int popularityBefore = _stats.Popularity.CurrentValue;
+            int fameBefore = _stats.Fame.CurrentValue;
+
+
+            SavedGame loadedSession = _saveService.Load();
             
-            gameManager.StartGame(DifficultyLevel.Easy);
+            Assert.NotNull(loadedSession);
+            Assert.AreEqual(_session.PlayState, loadedSession.ToGame().PlayState);
+            Assert.AreEqual(_session.Difficulty, loadedSession.ToGame().Difficulty);
+            Assert.AreEqual(_dayService.CurrentDay, loadedSession.saveData.daysCurrent);
+            Assert.AreEqual(_dayService.TotalDays, loadedSession.saveData.daysTotal);
+
+            Assert.AreEqual(eventsBefore, loadedSession.saveData.events.Count);
+
+            IStatService loadedStats = loadedSession.GetStats();
+            Assert.NotNull(loadedStats);
             
-            gameManager.Instance.SaveFileName = "test_save_roundtrip";
-            
-            RestEvent rest = new();
-            gameManager.Instance.Events.Append(rest);
-            PractiseEvent practice = new();
-            gameManager.Instance.Events.Append(practice);
-
-            SaveData saveData = SaveData.FromGameInstance(gameManager.Instance, gameManager.Instance.SaveFileName);
-            gameManager.SaveManager.SaveToFile(saveData, overwrite: true);
-
-            SaveData loaded = gameManager.SaveManager.LoadFromFile(gameManager.Instance.SaveFileName);
-            Assert.NotNull(loaded);
-
-            GameInstance runtime = loaded.ToGameInstance();
-            Assert.NotNull(runtime);
-            Assert.AreEqual(runtime.Stats.Energy.CurrentValue, gameManager.Instance.Stats.Energy.CurrentValue);
-            Assert.AreEqual(runtime.Events.GetAllEvents().Count, gameManager.Instance.Events.GetAllEvents().Count);
-
-            gameManager.SaveManager.DeleteSaveFile(gameManager.Instance.SaveFileName);
-            Object.DestroyImmediate(gameObject);
+            Assert.AreEqual(energyBefore, loadedStats.Energy.CurrentValue);
+            Assert.AreEqual(skillBefore, loadedStats.Skill.CurrentValue);
+            Assert.AreEqual(popularityBefore, loadedStats.Popularity.CurrentValue);
+            Assert.AreEqual(fameBefore, loadedStats.Fame.CurrentValue);
         }
     }
 }

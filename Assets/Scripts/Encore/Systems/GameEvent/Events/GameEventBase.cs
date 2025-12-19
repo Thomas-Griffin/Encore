@@ -1,6 +1,9 @@
 using System;
-using Encore.Model.Game;
+using Encore.Abstractions.Interfaces;
+using Encore.Model.Player;
+using Encore.Systems.Core;
 using JetBrains.Annotations;
+using Encore.Systems.GameEvent;
 
 namespace Encore.Systems.GameEvent.Events
 {
@@ -16,16 +19,23 @@ namespace Encore.Systems.GameEvent.Events
 
         public StatRequirements Requirements { get; set; } = new();
         public StatDeltas Deltas { get; set; } = new();
-        [CanBeNull] public GameAction Action { get; set; }
 
+        [CanBeNull] public PlayerAction Action { get; set; }
         [CanBeNull] public GameEventBase DelegateEvent { get; set; }
 
         public int ConsecutiveEventRepetitions { get; set; } = 1;
-        
-        public bool RequirementsAreMet(GameInstance state)
+
+        public bool RequirementsAreMet(GameSession state,
+            IStatService stats)
+            => Requirements.AreMetBy(state, stats);
+
+        public abstract GameEventBase Apply(GameSession state,
+            IStatService stats,
+            IDayService dayService);
+
+        public virtual StatDeltas PreviewDeltas(GameSession state, IStatService stats, IDayService dayService)
         {
-            return Requirements.AreMetBy(state.Stats);
+            return Deltas ?? new StatDeltas();
         }
-        public abstract GameEventBase Apply(GameInstance state);
     }
 }

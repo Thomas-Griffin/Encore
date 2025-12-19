@@ -1,5 +1,7 @@
-using Encore.Model.Game;
+using Encore.Abstractions.Interfaces;
+using Encore.Systems.Core;
 using UnityEngine;
+using Encore.Systems.GameEvent;
 
 namespace Encore.Systems.GameEvent.Events
 {
@@ -22,18 +24,31 @@ namespace Encore.Systems.GameEvent.Events
             };
         }
 
-        public override GameEventBase Apply(GameInstance state)
+        public override GameEventBase Apply(GameSession state,
+            IStatService stats,
+            IDayService dayService)
         {
             Deltas.energyDelta = CalculateEnergyDelta();
             Deltas.skillDelta = CalculateSkillDelta();
             Deltas.popularityDelta = 0;
             Deltas.fameDelta = 0;
-            if (!RequirementsAreMet(state)) return this;
-            state.Stats.ApplyDeltas(Deltas);
+            if (!RequirementsAreMet(state, stats)) return this;
+            stats.ApplyDeltas(Deltas);
             return this;
         }
 
-        // Bell-curve skill gain: slow at first, peak around middle, then decline at high repetitions.
+        public override StatDeltas PreviewDeltas(GameSession state, IStatService stats, IDayService dayService)
+        {
+            StatDeltas deltas = new()
+            {
+                energyDelta = CalculateEnergyDelta(),
+                skillDelta = CalculateSkillDelta(),
+                popularityDelta = 0,
+                fameDelta = 0
+            };
+            return deltas;
+        }
+
         private int CalculateSkillDelta()
         {
             const float maximumGainAtBellCurvePeak = 3f;
@@ -42,19 +57,19 @@ namespace Encore.Systems.GameEvent.Events
 
             float repetitions = Mathf.Max(1f, ConsecutiveEventRepetitions);
 
-            float exponent = -((repetitions - repetitionCountWherePracticeMostEffective) * (repetitions - repetitionCountWherePracticeMostEffective)) / (2f * bellCurveWidth * bellCurveWidth);
+            float exponent =
+                -((repetitions - repetitionCountWherePracticeMostEffective) *
+                  (repetitions - repetitionCountWherePracticeMostEffective)) / (2f * bellCurveWidth * bellCurveWidth);
             float rawGain = maximumGainAtBellCurvePeak * Mathf.Exp(exponent);
-            
+
             int gain = Mathf.Clamp(Mathf.RoundToInt(rawGain), 1, Mathf.RoundToInt(maximumGainAtBellCurvePeak));
             return gain;
         }
 
-        // Energy cost grows with repetitions (non-linear) so prolonged practice gets harder to maintain.
         private int CalculateEnergyDelta()
         {
             float reps = Mathf.Max(1f, ConsecutiveEventRepetitions);
             const int baseCost = 5;
-            // extra cost scales like (reps-1)^1.5 times a factor
             int extra = Mathf.RoundToInt(Mathf.Pow(reps - 1f, 1.5f) * 2f);
             return -(baseCost + extra);
         }

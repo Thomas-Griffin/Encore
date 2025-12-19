@@ -1,0 +1,41 @@
+<UXML xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/Encore/UI/Toolkit/USS/Root.uss?fileID=7433441132597879392&amp;guid=6816af97df764508acc8f740adac0804&amp;type=3#Root" />
+    <Style src="project://database/Assets/Scripts/Encore/UI/Toolkit/USS/Layout.uss?fileID=7433441132597879392&amp;guid=dac74c3c8c134c1d8c220a417e7cdba4&amp;type=3#Layout" />
+    <Style src="project://database/Assets/Scripts/Encore/UI/Toolkit/USS/Buttons.uss?fileID=7433441132597879392&amp;guid=eeb6f259a634428fa8a1573e44988414&amp;type=3#Buttons" />
+    <Style src="project://database/Assets/Scripts/Encore/UI/Toolkit/USS/Panels.uss?fileID=7433441132597879392&amp;guid=ba8152ecaa1f4080baa84f4fa7c7ace3&amp;type=3#Panels" />
+    <Style src="project://database/Assets/Scripts/Encore/UI/Toolkit/USS/Stats.uss?fileID=7433441132597879392&amp;guid=91e46a589ead464fbaf1fb65b211cd39&amp;type=3#Stats" />
+    <VisualElement name="root" class="root">
+        <VisualElement class="center-container panel centered-panel">
+            <VisualElement name="centerContainer" class="center-container">
+                <VisualElement name="hud" class="hud">
+                    <VisualElement name="actions" class="actions">
+                        <Button name="restButton" text="Rest" style="background-color: rgb(81, 182, 22);" />
+                        <Button name="practiseButton" text="Practise" style="background-color: rgb(188, 114, 73);" />
+                        <Button name="gigButton" text="Gig" style="background-color: rgb(138, 49, 49);" />
+                    </VisualElement>
+                    <VisualElement class="day-container">
+                        <Label name="dayLabel" text="Day 1 / 1" class="day-label" />
+                    </VisualElement>
+                    <VisualElement name="topStats" class="top-stats">
+                        <VisualElement class="stat">
+                            <Label text="Energy" class="stat-label" />
+                            <ProgressBar name="energyBar" class="stat-bar energy" />
+                        </VisualElement>
+                        <VisualElement class="stat">
+                            <Label text="Skill" class="stat-label" />
+                            <ProgressBar name="skillBar" class="stat-bar skill" />
+                        </VisualElement>
+                        <VisualElement class="stat">
+                            <Label text="Popularity" class="stat-label" />
+                            <ProgressBar name="popularityBar" class="stat-bar popularity" />
+                        </VisualElement>
+                        <VisualElement class="stat">
+                            <Label text="Fame" class="stat-label" />
+                            <ProgressBar name="fameBar" class="stat-bar fame" />
+                        </VisualElement>
+                    </VisualElement>
+                </VisualElement>
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

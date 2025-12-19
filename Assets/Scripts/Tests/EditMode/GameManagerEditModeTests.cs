@@ -1,119 +1,127 @@
+using Encore.Abstractions.Interfaces;
 using Encore.Model.Game;
+using Encore.Model.Player.Actions;
+using Encore.Systems.Configurations;
 using Encore.Systems.Core;
+using Encore.Systems.GameEvent;
 using NUnit.Framework;
+using Tests.EditMode.Mocks;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
     public class GameManagerTests
     {
-        private GameManager _gameManager;
-        private GameObject _gameObject;
+        private GameManager _game;
+        private GameSession _session;
+        private IEventStore _events;
+        private IStatService _stats;
+        private ISaveService _save;
+        private IDayService _days;
 
-        [OneTimeSetUp]
+        [SetUp]
         public void Setup()
         {
-            _gameObject = new GameObject("GameManagerTestObject");
-            _gameManager = _gameObject.AddComponent<GameManager>();
-        }
-
-        [OneTimeTearDown]
-        public void Teardown()
-        {
-            Object.DestroyImmediate(_gameObject);
+            _session = new GameSession();
+            _events = new EventStore();
+            _save = new MockSaveService();
+            _days = new DayService();
+            _stats = new StatsService(ScriptableObject.CreateInstance<StatsConfig>());
+            _stats.InitialiseStats(Difficulty.Easy);
+            _game = new GameManager(_session, _events, _stats, _save, _days);
         }
 
         [Test]
         public void StartGame_Initialises_GameState_And_Stats()
         {
-            _gameManager.StartGame(DifficultyLevel.Easy);
-            Assert.AreEqual(GameState.Playing, _gameManager.Instance.State,
-                "Game state should be Playing after starting the game");
-            Assert.AreEqual(_gameManager.Instance.Stats.Energy.MaxValue,
-                _gameManager.Instance.Stats.Energy.CurrentValue,
-                "Energy should be initialized to full on Easy difficulty");
-            Assert.AreEqual(0, _gameManager.Instance.Stats.Skill.CurrentValue, "Skill should be initialized to 0");
-            Assert.AreEqual(0, _gameManager.Instance.Stats.Popularity.CurrentValue,
-                "Popularity should be initialized to 0");
-            Assert.AreEqual(0, _gameManager.Instance.Stats.Fame.CurrentValue, "Fame should be initialized to 0");
+            _game.StartGame();
+
+            Assert.AreEqual(PlayState.Playing, _session.PlayState);
+            Assert.AreEqual(_stats.Energy.MaxValue, _stats.Energy.CurrentValue);
+            Assert.AreEqual(0, _stats.Skill.CurrentValue);
+            Assert.AreEqual(0, _stats.Popularity.CurrentValue);
+            Assert.AreEqual(0, _stats.Fame.CurrentValue);
+
+            Assert.AreEqual(1, _days.CurrentDay);
+            Assert.Greater(_days.TotalDays, 0);
         }
 
         [Test]
         public void Rest_Increases_Energy_Decreases_Popularity()
         {
-            _gameManager.Instance.Stats.Energy.CurrentValue = _gameManager.Instance.Stats.Energy.MaxValue / 2;
-            _gameManager.Instance.Stats.Popularity.CurrentValue = _gameManager.Instance.Stats.Popularity.MaxValue / 2;
+            _game.StartGame();
 
-            int startEnergy = _gameManager.Instance.Stats.Energy.CurrentValue;
-            int startPopularity = _gameManager.Instance.Stats.Popularity.CurrentValue;
+            _stats.Energy.CurrentValue = _stats.Energy.MaxValue / 2;
+            _stats.Popularity.CurrentValue = _stats.Popularity.MaxValue / 2;
 
-            _gameManager.DoAction(new SimpleGameAction(GameActions.Rest));
+            int startEnergy = _stats.Energy.CurrentValue;
+            int startPopularity = _stats.Popularity.CurrentValue;
 
-            Assert.Greater(_gameManager.Instance.Stats.Energy.CurrentValue, startEnergy,
-                "Energy should increase after resting");
-            Assert.Less(_gameManager.Instance.Stats.Popularity.CurrentValue, startPopularity,
-                "Popularity should decrease after resting");
+            _game.DoAction(new Rest());
+
+            Assert.Greater(_stats.Energy.CurrentValue, startEnergy);
+            Assert.Less(_stats.Popularity.CurrentValue, startPopularity);
         }
 
         [Test]
         public void Gig_Decreases_Energy_Increases_Popularity()
         {
-            _gameManager.Instance.Stats.Energy.CurrentValue =
-                _gameManager.Instance.Stats.Energy.MaxValue; // Ensure enough energy for gig
-            _gameManager.Instance.Stats.Popularity.CurrentValue =
-                _gameManager.Instance.Stats.Popularity.MinValue; // Set popularity to a known state
-            _gameManager.Instance.Stats.Skill.CurrentValue =
-                _gameManager.Instance.Stats.Skill.MaxValue; // Ensure skill is high enough for gig
+            _game.StartGame();
 
-            int startEnergy = _gameManager.Instance.Stats.Energy.CurrentValue;
-            int startPopularity = _gameManager.Instance.Stats.Popularity.CurrentValue;
+            _stats.Energy.CurrentValue = _stats.Energy.MaxValue;
+            _stats.Popularity.CurrentValue = _stats.Popularity.MinValue;
+            _stats.Skill.CurrentValue = _stats.Skill.MaxValue;
 
-            _gameManager.DoAction(new SimpleGameAction(GameActions.Gig));
+            int startEnergy = _stats.Energy.CurrentValue;
+            int startPopularity = _stats.Popularity.CurrentValue;
 
-            Assert.Less(_gameManager.Instance.Stats.Energy.CurrentValue, startEnergy,
-                "Energy should decrease after a gig");
-            Assert.Greater(_gameManager.Instance.Stats.Popularity.CurrentValue, startPopularity,
-                "Popularity should increase after a gig");
+            _game.DoAction(new Gig());
+
+            Assert.Less(_stats.Energy.CurrentValue, startEnergy);
+            Assert.Greater(_stats.Popularity.CurrentValue, startPopularity);
         }
 
         [Test]
         public void Practice_Decreases_Energy_Increases_Skill()
         {
-            _gameManager.Instance.Stats.Energy.CurrentValue =
-                _gameManager.Instance.Stats.Energy.MaxValue; // Ensure enough energy for practice
-            _gameManager.Instance.Stats.Skill.CurrentValue =
-                _gameManager.Instance.Stats.Skill.MinValue; // Set skill to a known state
+            _game.StartGame();
 
-            int startEnergy = _gameManager.Instance.Stats.Energy.CurrentValue;
-            int startSkill = _gameManager.Instance.Stats.Skill.CurrentValue;
+            _stats.Energy.CurrentValue = _stats.Energy.MaxValue;
+            _stats.Skill.CurrentValue = _stats.Skill.MinValue;
 
-            _gameManager.DoAction(new SimpleGameAction(GameActions.Practice));
+            int startEnergy = _stats.Energy.CurrentValue;
+            int startSkill = _stats.Skill.CurrentValue;
 
-            Assert.Less(_gameManager.Instance.Stats.Energy.CurrentValue, startEnergy,
-                "Energy should decrease after practice");
-            Assert.Greater(_gameManager.Instance.Stats.Skill.CurrentValue, startSkill,
-                "Skill should increase after practice");
+            _game.DoAction(new Practice());
+
+            Assert.Less(_stats.Energy.CurrentValue, startEnergy);
+            Assert.Greater(_stats.Skill.CurrentValue, startSkill);
         }
 
         [Test]
         public void Game_Can_Be_Won()
         {
-            _gameManager.StartGame(DifficultyLevel.Easy);
-            _gameManager.Instance.Stats.Fame.CurrentValue = _gameManager.Instance.Stats.Fame.MaxValue;
+            _game.StartGame();
 
-            _gameManager.CheckForEndGameConditions();
+            _stats.Fame.CurrentValue = _stats.Fame.MaxValue;
 
-            Assert.AreEqual(GameState.Win, _gameManager.Instance.State, "Game should be won when fame is maxed");
+            _game.CheckForEndGameConditions();
+
+            Assert.AreEqual(PlayState.Win, _session.PlayState);
+            Assert.Contains(WinReasons.AchievedFameTarget, _session.WinReasons);
         }
 
         [Test]
         public void Game_Can_Be_Lost()
         {
-            _gameManager.StartGame(DifficultyLevel.Easy);
-            _gameManager.Instance.Stats.Energy.CurrentValue = _gameManager.Instance.Stats.Energy.MinValue;
-            _gameManager.CheckForEndGameConditions();
-            Assert.AreEqual(GameState.Lose, _gameManager.Instance.State,
-                "Game should be lost when energy is depleted");
+            _game.StartGame();
+
+            _stats.Energy.CurrentValue = _stats.Energy.MinValue;
+
+            _game.CheckForEndGameConditions();
+
+            Assert.AreEqual(PlayState.Lose, _session.PlayState);
+            Assert.Contains(LoseReasons.EnergyDepleted, _session.LoseReasons);
         }
     }
 }

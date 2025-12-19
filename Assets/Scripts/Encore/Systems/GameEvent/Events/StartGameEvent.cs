@@ -1,5 +1,7 @@
 using System;
+using Encore.Abstractions.Interfaces;
 using Encore.Model.Game;
+using Encore.Systems.Core;
 
 namespace Encore.Systems.GameEvent.Events
 {
@@ -10,7 +12,9 @@ namespace Encore.Systems.GameEvent.Events
         public override string EventName => "Game Started";
         public override string Description => "A new game session has started.";
 
-        public override GameEventBase Apply(GameInstance state)
+        public override GameEventBase Apply(GameSession state,
+            IStatService stats,
+            IDayService dayService)
         {
             return this;
         }

@@ -34,8 +34,15 @@ namespace Encore.Model.Stats
         private readonly int _minimumDecrease;
         private readonly int _maximumDecrease;
 
-        public GameStat(GameStats stat, Color colour, int initialValue = 0, int minValue = 0, int maxValue = 100,
-            int maximumIncrease = 20, int maximumDecrease = 20, int minimumIncrease = 1, int minimumDecrease = 1)
+        public GameStat(GameStats stat,
+            Color colour,
+            int initialValue = 0,
+            int minValue = 0,
+            int maxValue = 100,
+            int maximumIncrease = 20,
+            int maximumDecrease = 20,
+            int minimumIncrease = 1,
+            int minimumDecrease = 1)
         {
             Stat = stat;
             Colour = colour;
